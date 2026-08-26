@@ -18,6 +18,36 @@ Scoring for league table:
 
 A summary of their results is emailed to them at the end of the gameweek.
 
+## Technology stack
+
+**Runtime & language**
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/) - serverless runtime hosting the whole app (API + static assets)
+- [TypeScript](https://www.typescriptlang.org/) - `strict` mode, compiled/type-checked via `tsc`
+- Node.js 20 - used in CI and for local tooling (the app itself runs on Workers, not Node)
+
+**Data & storage**
+- [Cloudflare D1](https://developers.cloudflare.com/d1/) - serverless SQLite database (players, predictions, gameweeks, results)
+- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek open/lock/score and deadline reminders
+
+**Frontend**
+- Static HTML/CSS/vanilla JavaScript (no framework/build step) served via [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), styled to look like a Ceefax/teletext service
+
+**Tooling & testing**
+- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) - CLI for local dev, D1 migrations/seeding, and deployment
+- [Vitest](https://vitest.dev/) + [`@cloudflare/vitest-pool-workers`](https://developers.cloudflare.com/workers/testing/vitest-integration/) - test runner, executed inside a real `workerd` environment
+- [GitHub Actions](https://github.com/features/actions) - CI/CD, type-checks + tests + `wrangler deploy` on every push to `main`
+
+## Third-party dependencies
+
+| Service | Used for | Config |
+|---|---|---|
+| [Cloudflare](https://dash.cloudflare.com) | Hosting (Workers, D1, static assets, cron) | Account login (`wrangler login`) + `CLOUDFLARE_API_TOKEN` repo secret |
+| [football-data.org](https://www.football-data.org/) | Football data sAPI for fixtures, results, and standings | `FOOTBALL_DATA_TOKEN` secret ([client.ts](src/football-data/client.ts)) |
+| [Resend](https://resend.com) | Transactional email - deadline reminders, gameweek results, PIN reset links | `RESEND_API_KEY` secret ([email.ts](src/utils/email.ts)) |
+| [GitHub Actions](https://github.com/features/actions) | CI/CD on push to `main` | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
+
+No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Resend.
+
 ## Setting up your own league
 
 1. **Fork this repo** on GitHub - you'll push to your fork's `main` branch to deploy.

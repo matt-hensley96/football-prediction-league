@@ -3,6 +3,7 @@ export interface Env {
   FOOTBALL_DATA_TOKEN: string;
   RESEND_API_KEY: string;
   EMAIL_FROM: string;
+  APP_URL: string;
 }
 
 export type Outcome = 'HOME' | 'AWAY' | 'DRAW';

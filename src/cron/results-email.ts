@@ -1,5 +1,6 @@
 import type { Env, FixtureRow, GameweekRow, Outcome } from '../types';
 import { sendEmail } from '../utils/email';
+import { escapeHtml } from '../utils/html';
 
 export interface GameweekPickRow {
   user_id: number;
@@ -72,11 +73,4 @@ export async function sendGameweekResultsEmails(
       console.error(`Failed to email results to ${player.name}:`, err);
     });
   }
-}
-
-function escapeHtml(str: string): string {
-  return str.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string,
-  );
 }

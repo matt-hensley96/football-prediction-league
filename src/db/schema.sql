@@ -21,6 +21,13 @@ CREATE TABLE IF NOT EXISTS pin_resets (
   used_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS gameweek_reminders (
+  gameweek_id INTEGER NOT NULL REFERENCES gameweeks(id),
+  kind TEXT NOT NULL CHECK (kind IN ('24h', '3h')),
+  sent_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (gameweek_id, kind)
+);
+
 CREATE TABLE IF NOT EXISTS gameweeks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   matchday INTEGER NOT NULL UNIQUE,

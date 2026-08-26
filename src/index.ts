@@ -4,7 +4,10 @@ import { handleForgotPin, handleResetPin } from './api/pin-reset';
 import { getCurrentGameweek, submitPredictions } from './api/predictions';
 import { getLeagueTable } from './api/table';
 import { runDaily } from './cron/handler';
+import { checkAndSendReminders } from './cron/reminders';
 import type { Env } from './types';
+
+const REMINDER_CRON = '*/15 * * * *';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -51,7 +54,11 @@ export default {
     }
   },
 
-  async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
-    await runDaily(env);
+  async scheduled(controller: ScheduledController, env: Env): Promise<void> {
+    if (controller.cron === REMINDER_CRON) {
+      await checkAndSendReminders(env);
+    } else {
+      await runDaily(env);
+    }
   },
 } satisfies ExportedHandler<Env>;

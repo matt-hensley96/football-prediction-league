@@ -1,6 +1,7 @@
 import type { Env } from '../types';
 import { sha256Hex } from '../utils/crypto';
 import { sendEmail } from '../utils/email';
+import { escapeHtml } from '../utils/html';
 import { json } from '../utils/http';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
@@ -37,7 +38,7 @@ export async function handleForgotPin(request: Request, env: Env): Promise<Respo
       env,
       email,
       'Reset your Predictor PIN',
-      `<p>Hi ${user.name},</p><p>Click below to set a new PIN. This link expires in 1 hour.</p>` +
+      `<p>Hi ${escapeHtml(user.name)},</p><p>Click below to set a new PIN. This link expires in 1 hour.</p>` +
         `<p><a href="${resetUrl.toString()}">${resetUrl.toString()}</a></p>` +
         `<p>If you didn't ask for this, you can ignore this email.</p>`,
     );

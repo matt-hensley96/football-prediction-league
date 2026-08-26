@@ -1,0 +1,27 @@
+{
+  "name": "football-score-predictor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 execute football-score-predictor --local --file=./src/db/schema.sql",
+    "db:migrate:remote": "wrangler d1 execute football-score-predictor --remote --file=./src/db/schema.sql",
+    "db:migrate-add-is-system:local": "wrangler d1 execute football-score-predictor --local --file=./src/db/migrate-add-is-system.sql",
+    "db:migrate-add-is-system:remote": "wrangler d1 execute football-score-predictor --remote --file=./src/db/migrate-add-is-system.sql",
+    "db:migrate-add-email:local": "wrangler d1 execute football-score-predictor --local --file=./src/db/migrate-add-email.sql",
+    "db:migrate-add-email:remote": "wrangler d1 execute football-score-predictor --remote --file=./src/db/migrate-add-email.sql",
+    "db:seed:local": "wrangler d1 execute football-score-predictor --local --file=./scripts/seed-users.sql",
+    "db:seed:remote": "wrangler d1 execute football-score-predictor --remote --file=./scripts/seed-users.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "wrangler": "^3.90.0"
+  }
+}

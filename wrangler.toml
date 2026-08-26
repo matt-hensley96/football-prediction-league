@@ -1,0 +1,22 @@
+name = "football-score-predictor"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[vars]
+# The "From" address Resend sends as. Must be on a domain you've verified with Resend.
+EMAIL_FROM = "predictor@example.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "football-score-predictor"
+database_id = "2126719e-e7bf-4842-9b97-6f8cd778b97b"
+
+[triggers]
+# Runs once a day. The cron handler itself decides whether there's actually
+# anything to do (open a gameweek, lock a deadline, score a finished one).
+crons = ["0 8 * * *"]

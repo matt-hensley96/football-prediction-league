@@ -1,0 +1,486 @@
+const state = {
+  page: 'table',
+  token: localStorage.getItem('predictor_token'),
+  userName: localStorage.getItem('predictor_name'),
+};
+
+const OUTCOME_LABELS = { HOME: 'HOME WIN', AWAY: 'AWAY WIN', DRAW: 'DRAW' };
+const CATEGORY_LABELS = { man_utd: 'MAN UTD', leeds: 'LEEDS', top_of_table: 'TOP OF TABLE' };
+
+const app = document.getElementById('app');
+
+function setLoggedIn(token, name) {
+  state.token = token;
+  state.userName = name;
+  localStorage.setItem('predictor_token', token);
+  localStorage.setItem('predictor_name', name);
+}
+
+function logout() {
+  state.token = null;
+  state.userName = null;
+  localStorage.removeItem('predictor_token');
+  localStorage.removeItem('predictor_name');
+  render();
+}
+
+async function api(path, options) {
+  const headers = { 'Content-Type': 'application/json' };
+
+  if (state.token) {
+    headers.Authorization = `Bearer ${state.token}`;
+  }
+
+  const response = await fetch(`/api${path}`, { ...options, headers });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed (${response.status})`);
+  }
+
+  return data;
+}
+
+function formatKickoff(iso) {
+  return new Date(iso).toLocaleString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function el(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html.trim();
+
+  return template.content.firstElementChild;
+}
+
+async function renderTablePage() {
+  app.innerHTML = '<h1>League Table</h1><p class="muted">Loading&hellip;</p>';
+
+  try {
+    const { standings } = await api('/table');
+
+    if (standings.length === 0) {
+      app.innerHTML = '<h1>League Table</h1><p class="info-box">No scored gameweeks yet.</p>';
+
+      return;
+    }
+
+    const rows = standings
+      .map(
+        (s, i) => `
+        <tr>
+          <td>${i + 1}. ${escapeHtml(s.name)}</td>
+          <td class="points">${s.points}</td>
+        </tr>`,
+      )
+      .join('');
+
+    app.innerHTML = `
+      <h1>League Table</h1>
+      <table class="retro-table">
+        <thead><tr><th>Player</th><th>Points</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  } catch (err) {
+    app.innerHTML = `<h1>League Table</h1><p class="error-text">${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function renderAuthForm(onSuccess) {
+  const wrapper = el('<div class="auth-wrapper"></div>');
+  let mode = 'login';
+
+  function draw() {
+    wrapper.innerHTML = '';
+
+    if (mode === 'forgot') {
+      wrapper.appendChild(
+        renderForgotPinForm(() => {
+          mode = 'login';
+          draw();
+        }),
+      );
+
+      return;
+    }
+
+    const toggle = el(`
+      <div class="auth-toggle">
+        <button type="button" class="auth-toggle-btn" data-mode="login">LOG IN</button>
+        <button type="button" class="auth-toggle-btn" data-mode="signup">SIGN UP</button>
+      </div>
+    `);
+
+    toggle.querySelectorAll('.auth-toggle-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+      btn.addEventListener('click', () => {
+        mode = btn.dataset.mode;
+        draw();
+      });
+    });
+
+    wrapper.appendChild(toggle);
+
+    const isSignup = mode === 'signup';
+    const form = el(`
+      <form class="login-form">
+        <label>Full name<br><input type="text" name="name" autocomplete="username" required /></label>
+        ${isSignup ? '<label>Email (optional – lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" /></label>' : ''}
+        <label>PIN<br><input type="password" inputmode="numeric" name="pin"
+          autocomplete="${isSignup ? 'new-password' : 'current-password'}" required /></label>
+        <button type="submit">${isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}</button>
+        <p class="error-text" style="display:none"></p>
+      </form>
+    `);
+
+    const errorEl = form.querySelector('.error-text');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+
+      const name = form.name.value.trim();
+      const pin = form.pin.value.trim();
+      const path = isSignup ? '/signup' : '/login';
+      const payload = isSignup ? { name, pin, email: form.email.value.trim() || undefined } : { name, pin };
+
+      try {
+        const { token } = await api(path, { method: 'POST', body: JSON.stringify(payload) });
+        setLoggedIn(token, name);
+        onSuccess();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      }
+    });
+
+    wrapper.appendChild(form);
+
+    if (!isSignup) {
+      const forgotBtn = el('<button type="button" class="link-btn">FORGOT PIN?</button>');
+      forgotBtn.addEventListener('click', () => {
+        mode = 'forgot';
+        draw();
+      });
+      wrapper.appendChild(forgotBtn);
+    }
+  }
+
+  draw();
+
+  return wrapper;
+}
+
+function renderForgotPinForm(onBack) {
+  const wrapper = el('<div></div>');
+  const form = el(`
+    <form class="login-form">
+      <label>Email<br><input type="email" name="email" autocomplete="email" required /></label>
+      <button type="submit">SEND RESET LINK</button>
+      <p class="error-text" style="display:none"></p>
+      <p class="info-box" style="display:none"></p>
+    </form>
+  `);
+
+  const errorEl = form.querySelector('.error-text');
+  const infoEl = form.querySelector('.info-box');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    const email = form.email.value.trim();
+
+    try {
+      await api('/forgot-pin', { method: 'POST', body: JSON.stringify({ email }) });
+      submitBtn.disabled = true;
+      infoEl.textContent = "If that email is registered, we've sent a link to reset your PIN.";
+      infoEl.style.display = 'block';
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  });
+
+  wrapper.appendChild(form);
+
+  const backBtn = el('<button type="button" class="link-btn">BACK TO LOG IN</button>');
+  backBtn.addEventListener('click', onBack);
+  wrapper.appendChild(backBtn);
+
+  return wrapper;
+}
+
+function renderResetPinPage(token) {
+  app.innerHTML = '<h1>Set New PIN</h1>';
+
+  const form = el(`
+    <form class="login-form">
+      <label>New PIN<br><input type="password" inputmode="numeric" name="pin"
+        autocomplete="new-password" required /></label>
+      <button type="submit">SET PIN</button>
+      <p class="error-text" style="display:none"></p>
+    </form>
+  `);
+
+  const errorEl = form.querySelector('.error-text');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    const pin = form.pin.value.trim();
+
+    try {
+      await api('/reset-pin', { method: 'POST', body: JSON.stringify({ token, pin }) });
+      window.history.replaceState({}, '', window.location.pathname);
+      app.innerHTML =
+        '<h1>Set New PIN</h1><p class="info-box">Your PIN has been reset. You can now log in with it.</p>';
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  });
+
+  app.appendChild(form);
+}
+
+async function renderPredictPage() {
+  app.innerHTML = '';
+  app.appendChild(el('<h1>Predictions</h1>'));
+
+  if (!state.token) {
+    app.appendChild(el('<p class="muted">Log in (or sign up) to make your picks.</p>'));
+    app.appendChild(renderAuthForm(renderPredictPage));
+
+    return;
+  }
+
+  const loggedInBar = el(`
+    <p class="info-box">Logged in as <strong>${escapeHtml(state.userName)}</strong>
+      &nbsp; <button class="logout-btn" type="button">LOG OUT</button></p>
+  `);
+  loggedInBar.querySelector('.logout-btn').addEventListener('click', logout);
+  app.appendChild(loggedInBar);
+
+  const loadingMsg = el('<p class="muted">Loading fixtures&hellip;</p>');
+  app.appendChild(loadingMsg);
+
+  try {
+    const { gameweek, fixtures, picks, isOpen } = await api('/gameweek');
+    loadingMsg.remove();
+
+    if (!gameweek) {
+      app.appendChild(el('<p class="info-box">No gameweek is open right now. Check back nearer kick-off.</p>'));
+
+      return;
+    }
+
+    if (!isOpen) {
+      app.appendChild(el('<p class="info-box">Predictions are closed for this gameweek.</p>'));
+    } else {
+      app.appendChild(
+        el(
+          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a winner or Draw for each game, then hit Submit.</p>`,
+        ),
+      );
+    }
+
+    const localPicks = { ...picks };
+
+    for (const fixture of fixtures) {
+      app.appendChild(
+        renderFixtureCard(fixture, localPicks[fixture.id], isOpen, (pick) => {
+          localPicks[fixture.id] = pick;
+        }),
+      );
+    }
+
+    if (isOpen) {
+      app.appendChild(renderSubmitControls(localPicks));
+    }
+  } catch (err) {
+    loadingMsg.remove();
+    app.appendChild(el(`<p class="error-text">${escapeHtml(err.message)}</p>`));
+  }
+}
+
+function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
+  const card = el(`
+    <div class="fixture-card">
+      <div class="fixture-category">${CATEGORY_LABELS[fixture.category] || fixture.category}</div>
+      <div>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</div>
+      <div class="fixture-kickoff">${formatKickoff(fixture.kickoff_time)}</div>
+      <div class="pick-row">
+        <button class="pick-btn" data-pick="HOME" type="button">${escapeHtml(fixture.home_team)}</button>
+        <button class="pick-btn" data-pick="DRAW" type="button">DRAW</button>
+        <button class="pick-btn" data-pick="AWAY" type="button">${escapeHtml(fixture.away_team)}</button>
+      </div>
+    </div>
+  `);
+
+  const buttons = card.querySelectorAll('.pick-btn');
+
+  buttons.forEach((btn) => {
+    if (btn.dataset.pick === currentPick) {
+      btn.classList.add('selected');
+    }
+
+    btn.disabled = !isOpen;
+
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      onPick(btn.dataset.pick);
+    });
+  });
+
+  return card;
+}
+
+function renderSubmitControls(localPicks) {
+  const wrapper = el(`
+    <div class="submit-controls">
+      <button class="submit-btn" type="button">SUBMIT PREDICTIONS</button>
+      <p class="error-text" style="display:none"></p>
+      <p class="info-box" style="display:none"></p>
+    </div>
+  `);
+
+  const submitBtn = wrapper.querySelector('.submit-btn');
+  const errorEl = wrapper.querySelector('.error-text');
+  const infoEl = wrapper.querySelector('.info-box');
+
+  submitBtn.addEventListener('click', async () => {
+    const picks = Object.entries(localPicks).map(([fixtureId, pick]) => ({ fixtureId: Number(fixtureId), pick }));
+
+    errorEl.style.display = 'none';
+    infoEl.style.display = 'none';
+
+    if (picks.length === 0) {
+      errorEl.textContent = 'Pick a winner or draw for at least one fixture first.';
+      errorEl.style.display = 'block';
+
+      return;
+    }
+
+    submitBtn.disabled = true;
+
+    try {
+      await api('/predictions', { method: 'POST', body: JSON.stringify({ picks }) });
+      infoEl.textContent = 'Predictions saved!';
+      infoEl.style.display = 'block';
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  return wrapper;
+}
+
+async function renderHistoryPage() {
+  app.innerHTML = '<h1>History</h1><p class="muted">Loading&hellip;</p>';
+
+  try {
+    const { history } = await api('/history');
+
+    if (history.length === 0) {
+      app.innerHTML = '<h1>History</h1><p class="info-box">No gameweeks scored yet.</p>';
+
+      return;
+    }
+
+    app.innerHTML = '<h1>History</h1>';
+
+    for (const entry of history) {
+      app.appendChild(renderHistoryBlock(entry));
+    }
+  } catch (err) {
+    app.innerHTML = `<h1>History</h1><p class="error-text">${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function renderHistoryBlock(entry) {
+  const block = el(`<div class="history-block"><h2>Matchday ${entry.gameweek.matchday}</h2></div>`);
+
+  for (const fixture of entry.fixtures) {
+    block.appendChild(
+      el(`
+        <div>
+          <strong>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</strong>
+          &mdash; ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
+        </div>
+      `),
+    );
+
+    const picksForFixture = entry.picks.filter((p) => p.fixture_id === fixture.id);
+
+    for (const pick of picksForFixture) {
+      block.appendChild(
+        el(`
+          <div class="result-line">
+            <span>${escapeHtml(pick.name)}: ${OUTCOME_LABELS[pick.pick]}</span>
+            <span class="points">${pick.points_awarded ?? 0}pt</span>
+          </div>
+        `),
+      );
+    }
+  }
+
+  return block;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[c]);
+}
+
+function render() {
+  document.querySelectorAll('.page-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.page === state.page);
+  });
+
+  if (state.page === 'table') return renderTablePage();
+  if (state.page === 'predict') return renderPredictPage();
+  if (state.page === 'history') return renderHistoryPage();
+}
+
+document.querySelectorAll('.page-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    state.page = btn.dataset.page;
+    render();
+  });
+});
+
+function tickClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+tickClock();
+setInterval(tickClock, 1000 * 30);
+
+const resetToken = new URLSearchParams(window.location.search).get('resetToken');
+
+if (resetToken) {
+  renderResetPinPage(resetToken);
+} else {
+  render();
+}

@@ -44,9 +44,9 @@ body {
 }
 
 .header-block {
-  color: var(--black);
-  padding: 2px 6px;
-  font-weight: bold;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
 }
 
 .block-red { background: var(--red); }

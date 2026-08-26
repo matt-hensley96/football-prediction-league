@@ -8,6 +8,7 @@ interface LoginBody {
 }
 
 const RESERVED_NAMES = new Set(['cpu']);
+const MAX_PLAYERS = 10;
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
   const body = await request.json<LoginBody>();
@@ -55,6 +56,13 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
 
   if (existing) {
     return json({ error: 'That name is already taken' }, 409);
+  }
+
+  const playerCount = await env.DB.prepare('SELECT COUNT(*) AS count FROM users WHERE is_system = 0')
+    .first<{ count: number }>();
+
+  if ((playerCount?.count ?? 0) >= MAX_PLAYERS) {
+    return json({ error: 'Signups are full' }, 409);
   }
 
   const pinHash = await sha256Hex(pin);

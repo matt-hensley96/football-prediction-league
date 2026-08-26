@@ -39,10 +39,10 @@ A summary of their results is emailed to them at the end of the gameweek.
 |---|---|---|
 | [Cloudflare](https://dash.cloudflare.com) | Hosting (Workers, D1, static assets, cron) | Account login (`wrangler login`) + `CLOUDFLARE_API_TOKEN` repo secret |
 | [football-data.org](https://www.football-data.org/) | Football data sAPI for fixtures, results, and standings | `FOOTBALL_DATA_TOKEN` secret ([client.ts](src/football-data/client.ts)) |
-| [Resend](https://resend.com) | Transactional email - deadline reminders, gameweek results, PIN reset links | `RESEND_API_KEY` secret ([email.ts](src/utils/email.ts)) |
+| [Brevo](https://www.brevo.com) | Transactional email - deadline reminders, gameweek results, PIN reset links | `BREVO_API_KEY` secret ([email.ts](src/utils/email.ts)) |
 | [GitHub Actions](https://github.com/features/actions) | CI/CD on push to `main` | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
 
-No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Resend.
+No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Brevo.
 
 ## Setting up your own league
 
@@ -66,11 +66,13 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    `REPLACE_WITH_YOUR_D1_DATABASE_ID`).
 
 5. **Set up emailing** - this is used for "forgot PIN" links and gameweek results) - sent via
-   [Resend](https://resend.com). Register a free account, verify a sending domain, and copy an API
-   key.
+   [Brevo](https://www.brevo.com). Register a free account, then verify a single sender address
+   under Senders & IP -> Senders (no domain/DNS setup needed - just click the confirmation link
+   Brevo emails to that address), and copy an API key.
 
-   Update `EMAIL_FROM` in `wrangler.toml` to an address on your verified Resend domain (e.g.
-   `predictor@yourdomain.com`) - this isn't a secret, so it lives directly in `wrangler.toml`.
+   You'll set `EMAIL_FROM` to your verified Brevo sender address as a secret in step 7 below - it's
+   kept out of `wrangler.toml` since it may be a personal address you don't want committed to a
+   public repo.
 
    Also update `APP_URL` in `wrangler.toml` to your Worker's URL once you know it (its
    `*.workers.dev` URL, or a custom domain) - reminder emails link back to it so players can go
@@ -89,7 +91,8 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    ```
    npx wrangler deploy
    npx wrangler secret put FOOTBALL_DATA_TOKEN
-   npx wrangler secret put RESEND_API_KEY
+   npx wrangler secret put BREVO_API_KEY
+   npx wrangler secret put EMAIL_FROM
    ```
 
 8. **Set up automatic deploys via GitHub Actions** - add a repo secret named
@@ -121,7 +124,8 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
 
    ```
    FOOTBALL_DATA_TOKEN=your-football-data-org-token
-   RESEND_API_KEY=your-resend-api-key
+   BREVO_API_KEY=your-brevo-api-key
+   EMAIL_FROM=your-verified-brevo-sender@example.com
    ```
 
 4. **Start the dev server**

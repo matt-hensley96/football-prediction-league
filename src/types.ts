@@ -1,7 +1,7 @@
 export interface Env {
   DB: D1Database;
   FOOTBALL_DATA_TOKEN: string;
-  RESEND_API_KEY: string;
+  BREVO_API_KEY: string;
   EMAIL_FROM: string;
   APP_URL: string;
 }

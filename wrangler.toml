@@ -8,11 +8,13 @@ directory = "./public"
 binding = "ASSETS"
 
 [vars]
-# The "From" address Resend sends as. Must be on a domain you've verified with Resend.
-EMAIL_FROM = "predictor@example.com"
 # Public URL of the deployed Worker, linked to from reminder emails. Update once you know your
 # *.workers.dev URL (or custom domain).
-APP_URL = "https://football-score-predictor.example.workers.dev"
+APP_URL = "https://football-score-predictor.mh96.workers.dev"
+
+# EMAIL_FROM is set as a secret (`wrangler secret put EMAIL_FROM`), not a plain var here, since
+# it's a personal address you may not want committed to a public repo. Must be a sender verified
+# with Brevo (single sender verification - no domain/DNS setup required).
 
 [[d1_databases]]
 binding = "DB"

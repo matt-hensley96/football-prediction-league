@@ -41,10 +41,10 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
   const body = await request.json<SignupBody>();
   const name = body.name?.trim();
   const pin = body.pin?.trim();
-  const email = body.email?.trim().toLowerCase() || null;
+  const email = body.email?.trim().toLowerCase();
 
-  if (!name || !pin) {
-    return json({ error: 'name and pin are required' }, 400);
+  if (!name || !pin || !email) {
+    return json({ error: 'name, pin, and email are required' }, 400);
   }
 
   if (RESERVED_NAMES.has(name.toLowerCase())) {

@@ -131,7 +131,7 @@ function renderAuthForm(onSuccess) {
     const form = el(`
       <form class="login-form">
         <label>Full name<br><input type="text" name="name" autocomplete="username" required /></label>
-        ${isSignup ? '<label>Email (optional – lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" /></label>' : ''}
+        ${isSignup ? '<label>Email (lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" required /></label>' : ''}
         <label>PIN<br><input type="password" inputmode="numeric" name="pin"
           autocomplete="${isSignup ? 'new-password' : 'current-password'}" required /></label>
         <button type="submit">${isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}</button>

@@ -3,10 +3,10 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL UNIQUE,
   pin_hash TEXT NOT NULL,
   is_system INTEGER NOT NULL DEFAULT 0,
-  email TEXT
+  email TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
@@ -64,7 +64,6 @@ CREATE INDEX IF NOT EXISTS idx_fixtures_gameweek ON fixtures (gameweek_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 
--- "CPU" always predicts a home win for every fixture (a nod to the real Ceefax/Grandstand
--- SuperComputer feature). It's a system account: pin_hash is meaningless since is_system
--- users are always rejected at login.
-INSERT OR IGNORE INTO users (name, pin_hash, is_system) VALUES ('CPU', '', 1);
+-- "CPU" always predicts a home win for every fixture
+-- It's a system account: pin_hash is meaningless since is_system users are always rejected at login.
+INSERT OR IGNORE INTO users (name, pin_hash, is_system, email) VALUES ('CPU', '', 1, 'cpu@system.local');

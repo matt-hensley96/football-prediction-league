@@ -8,7 +8,14 @@ export interface FdStandingRow {
   team: FdTeam;
 }
 
+export interface FdSeason {
+  startDate: string;
+  endDate: string;
+  currentMatchday: number;
+}
+
 export interface FdStandingsResponse {
+  season: FdSeason;
   standings: Array<{
     type: 'TOTAL' | 'HOME' | 'AWAY';
     table: FdStandingRow[];

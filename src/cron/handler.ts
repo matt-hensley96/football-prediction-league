@@ -1,6 +1,7 @@
 import { FootballDataClient } from '../football-data/client';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
 import { outcomeFromWinner, scorePrediction } from '../scoring/scorer';
+import { checkAndSendSeasonSummary } from './season-summary';
 import { sendGameweekResultsEmails } from './results-email';
 import type { GameweekPickRow } from './results-email';
 import type { Env, FixtureRow, GameweekRow, Outcome, PredictionRow } from '../types';
@@ -11,6 +12,7 @@ export async function runDaily(env: Env): Promise<void> {
   await lockPastDeadlines(env);
   await scoreFinishedGameweeks(env, client);
   await maybeOpenNextGameweek(env, client);
+  await checkAndSendSeasonSummary(env, client);
 }
 
 async function lockPastDeadlines(env: Env): Promise<void> {

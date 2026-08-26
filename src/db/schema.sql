@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS gameweek_reminders (
   PRIMARY KEY (gameweek_id, kind)
 );
 
+CREATE TABLE IF NOT EXISTS season_summaries (
+  season_end_date TEXT PRIMARY KEY,
+  sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS gameweeks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   matchday INTEGER NOT NULL UNIQUE,

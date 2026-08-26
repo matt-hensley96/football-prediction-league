@@ -8,8 +8,6 @@ export interface Env {
 
 export type Outcome = 'HOME' | 'AWAY' | 'DRAW';
 
-export type FixtureCategory = 'man_utd' | 'leeds' | 'top_of_table';
-
 export type GameweekStatus = 'open' | 'locked' | 'scored';
 
 export interface GameweekRow {
@@ -22,7 +20,6 @@ export interface GameweekRow {
 export interface FixtureRow {
   id: number;
   gameweek_id: number;
-  category: FixtureCategory;
   home_team: string;
   away_team: string;
   kickoff_time: string;

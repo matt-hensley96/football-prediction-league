@@ -5,7 +5,6 @@ const state = {
 };
 
 const OUTCOME_LABELS = { HOME: 'HOME WIN', AWAY: 'AWAY WIN', DRAW: 'DRAW' };
-const CATEGORY_LABELS = { man_utd: 'MAN UTD', leeds: 'LEEDS', top_of_table: 'TOP OF TABLE' };
 
 const app = document.getElementById('app');
 
@@ -131,7 +130,7 @@ function renderAuthForm(onSuccess) {
     const form = el(`
       <form class="login-form">
         <label>Full name<br><input type="text" name="name" autocomplete="username" required /></label>
-        ${isSignup ? '<label>Email (optional – lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" /></label>' : ''}
+        ${isSignup ? '<label>Email (lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" required /></label>' : ''}
         <label>PIN<br><input type="password" inputmode="numeric" name="pin"
           autocomplete="${isSignup ? 'new-password' : 'current-password'}" required /></label>
         <button type="submit">${isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}</button>
@@ -315,7 +314,6 @@ async function renderPredictPage() {
 function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   const card = el(`
     <div class="fixture-card">
-      <div class="fixture-category">${CATEGORY_LABELS[fixture.category] || fixture.category}</div>
       <div>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</div>
       <div class="fixture-kickoff">${formatKickoff(fixture.kickoff_time)}</div>
       <div class="pick-row">

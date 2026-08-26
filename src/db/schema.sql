@@ -3,10 +3,10 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL UNIQUE,
   pin_hash TEXT NOT NULL,
   is_system INTEGER NOT NULL DEFAULT 0,
-  email TEXT
+  email TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS gameweek_reminders (
   PRIMARY KEY (gameweek_id, kind)
 );
 
+CREATE TABLE IF NOT EXISTS season_summaries (
+  season_end_date TEXT PRIMARY KEY,
+  sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS gameweeks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   matchday INTEGER NOT NULL UNIQUE,
@@ -38,7 +43,6 @@ CREATE TABLE IF NOT EXISTS gameweeks (
 CREATE TABLE IF NOT EXISTS fixtures (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   gameweek_id INTEGER NOT NULL REFERENCES gameweeks(id),
-  category TEXT NOT NULL CHECK (category IN ('man_utd', 'leeds', 'top_of_table')),
   home_team TEXT NOT NULL,
   away_team TEXT NOT NULL,
   kickoff_time TEXT NOT NULL,
@@ -59,7 +63,6 @@ CREATE INDEX IF NOT EXISTS idx_fixtures_gameweek ON fixtures (gameweek_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 
--- "CPU" always predicts a home win for every fixture (a nod to the real Ceefax/Grandstand
--- SuperComputer feature). It's a system account: pin_hash is meaningless since is_system
--- users are always rejected at login.
-INSERT OR IGNORE INTO users (name, pin_hash, is_system) VALUES ('CPU', '', 1);
+-- "CPU" always predicts a home win for every fixture
+-- It's a system account: pin_hash is meaningless since is_system users are always rejected at login.
+INSERT OR IGNORE INTO users (name, pin_hash, is_system, email) VALUES ('CPU', '', 1, 'cpu@system.local');

@@ -9,12 +9,13 @@ interface LoginBody {
 
 const RESERVED_NAMES = new Set(['cpu']);
 const MAX_PLAYERS = 10;
+const USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{2,19}$/;
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
   const body = await request.json<LoginBody>();
 
   if (!body.name || !body.pin) {
-    return json({ error: 'name and pin are required' }, 400);
+    return json({ error: 'username and pin are required' }, 400);
   }
 
   const user = await env.DB.prepare('SELECT id, name, pin_hash, is_system FROM users WHERE name = ?')
@@ -24,7 +25,7 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
   const pinHash = await sha256Hex(body.pin);
 
   if (!user || user.is_system || user.pin_hash !== pinHash) {
-    return json({ error: 'Invalid name or PIN' }, 401);
+    return json({ error: 'Invalid username or PIN' }, 401);
   }
 
   const token = await createSession(env, user.id);
@@ -45,17 +46,27 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
   const email = body.email?.trim().toLowerCase();
 
   if (!name || !pin || !email) {
-    return json({ error: 'name, pin, and email are required' }, 400);
+    return json({ error: 'username, pin, and email are required' }, 400);
+  }
+
+  if (!USERNAME_PATTERN.test(name)) {
+    return json(
+      {
+        error:
+          'Username must be 3-20 characters, start with a letter, and contain only letters, numbers, underscores, and hyphens',
+      },
+      400,
+    );
   }
 
   if (RESERVED_NAMES.has(name.toLowerCase())) {
-    return json({ error: 'That name is reserved' }, 400);
+    return json({ error: 'That username is reserved' }, 400);
   }
 
   const existing = await env.DB.prepare('SELECT id FROM users WHERE name = ?').bind(name).first();
 
   if (existing) {
-    return json({ error: 'That name is already taken' }, 409);
+    return json({ error: 'That username is already taken' }, 409);
   }
 
   const playerCount = await env.DB.prepare('SELECT COUNT(*) AS count FROM users WHERE is_system = 0')

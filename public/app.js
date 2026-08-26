@@ -129,7 +129,8 @@ function renderAuthForm(onSuccess) {
     const isSignup = mode === 'signup';
     const form = el(`
       <form class="login-form">
-        <label>Full name<br><input type="text" name="name" autocomplete="username" required /></label>
+        <label>Username<br><input type="text" name="name" autocomplete="username" required
+          ${isSignup ? 'pattern="[A-Za-z][A-Za-z0-9_-]{2,19}" maxlength="20" title="3-20 characters, start with a letter, letters/numbers/underscores/hyphens only"' : ''} /></label>
         ${isSignup ? '<label>Email (lets you recover a forgotten PIN)<br><input type="email" name="email" autocomplete="email" required /></label>' : ''}
         <label>PIN<br><input type="password" inputmode="numeric" name="pin"
           autocomplete="${isSignup ? 'new-password' : 'current-password'}" required /></label>

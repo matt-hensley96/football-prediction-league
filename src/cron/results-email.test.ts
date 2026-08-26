@@ -9,7 +9,6 @@ const fixtures: FixtureRow[] = [
   {
     id: 10,
     gameweek_id: 1,
-    category: 'man_utd',
     home_team: 'Man Utd',
     away_team: 'Arsenal',
     kickoff_time: '2026-01-01T15:00:00Z',

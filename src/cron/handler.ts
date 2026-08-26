@@ -112,7 +112,7 @@ async function maybeOpenNextGameweek(env: Env, client: FootballDataClient): Prom
   }
 
   const earliestKickoff = selection.fixtures
-    .map((f) => new Date(f.match.utcDate).getTime())
+    .map((f) => new Date(f.utcDate).getTime())
     .reduce((earliest, current) => Math.min(earliest, current), Infinity);
 
   const deadline = new Date(earliestKickoff).toISOString();
@@ -133,16 +133,15 @@ async function maybeOpenNextGameweek(env: Env, client: FootballDataClient): Prom
 
   for (const fixture of selection.fixtures) {
     const insertedFixture = await env.DB.prepare(
-      `INSERT INTO fixtures (gameweek_id, category, home_team, away_team, kickoff_time, pl_match_id)
-       VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
+      `INSERT INTO fixtures (gameweek_id, home_team, away_team, kickoff_time, pl_match_id)
+       VALUES (?, ?, ?, ?, ?) RETURNING id`,
     )
       .bind(
         insertedGameweek.id,
-        fixture.category,
-        fixture.match.homeTeam.name,
-        fixture.match.awayTeam.name,
-        fixture.match.utcDate,
-        fixture.match.id,
+        fixture.homeTeam.name,
+        fixture.awayTeam.name,
+        fixture.utcDate,
+        fixture.id,
       )
       .first<{ id: number }>();
 

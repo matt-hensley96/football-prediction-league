@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS gameweeks (
 CREATE TABLE IF NOT EXISTS fixtures (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   gameweek_id INTEGER NOT NULL REFERENCES gameweeks(id),
-  category TEXT NOT NULL CHECK (category IN ('man_utd', 'leeds', 'top_of_table')),
   home_team TEXT NOT NULL,
   away_team TEXT NOT NULL,
   kickoff_time TEXT NOT NULL,

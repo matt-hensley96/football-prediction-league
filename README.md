@@ -5,11 +5,8 @@ Hosted entirely on Cloudflare's free tier (Workers + D1).
 
 Players create an account with a PIN to log in with.
 
-Every gameweek, players are emailed to prompt them to predict the outcome (home win / draw / away win) of 3 fixtures:
-- Manchester United's game
-- Leeds United's game
-- The current top-of-the-table team's game (or the next-highest team if Man Utd or Leeds
-  themselves are top)
+Every gameweek, players are emailed to prompt them to predict the outcome (home win / draw / away win) of
+3 randomly selected Premier League fixtures.
 
 Scoring for league table: 
 - **+3** for a correct prediction

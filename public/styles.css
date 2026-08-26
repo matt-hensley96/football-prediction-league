@@ -248,13 +248,6 @@ table.retro-table tr:first-child td {
   margin-bottom: 14px;
 }
 
-.fixture-category {
-  color: var(--magenta);
-  font-size: 13px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
 .fixture-kickoff {
   color: var(--cyan);
   font-size: 13px;

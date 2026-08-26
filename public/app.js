@@ -5,7 +5,6 @@ const state = {
 };
 
 const OUTCOME_LABELS = { HOME: 'HOME WIN', AWAY: 'AWAY WIN', DRAW: 'DRAW' };
-const CATEGORY_LABELS = { man_utd: 'MAN UTD', leeds: 'LEEDS', top_of_table: 'TOP OF TABLE' };
 
 const app = document.getElementById('app');
 
@@ -315,7 +314,6 @@ async function renderPredictPage() {
 function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   const card = el(`
     <div class="fixture-card">
-      <div class="fixture-category">${CATEGORY_LABELS[fixture.category] || fixture.category}</div>
       <div>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</div>
       <div class="fixture-kickoff">${formatKickoff(fixture.kickoff_time)}</div>
       <div class="pick-row">

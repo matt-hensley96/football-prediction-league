@@ -73,7 +73,7 @@ async function renderTablePage() {
       .map(
         (s, i) => `
         <tr>
-          <td>${i + 1}. ${escapeHtml(s.name)}</td>
+          <td class="player">${i + 1}. ${escapeHtml(s.name)}</td>
           <td class="points">${s.points}</td>
         </tr>`,
       )
@@ -288,7 +288,7 @@ async function renderPredictPage() {
     } else {
       app.appendChild(
         el(
-          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a winner or Draw for each game, then hit Submit.</p>`,
+          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a result for each game, then hit Submit.</p>`,
         ),
       );
     }
@@ -364,7 +364,7 @@ function renderSubmitControls(localPicks) {
     infoEl.style.display = 'none';
 
     if (picks.length === 0) {
-      errorEl.textContent = 'Pick a winner or draw for at least one fixture first.';
+      errorEl.textContent = 'Pick a result for at least one fixture first.';
       errorEl.style.display = 'block';
 
       return;

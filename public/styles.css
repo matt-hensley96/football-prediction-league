@@ -152,6 +152,10 @@ table.retro-table th {
   font-size: 14px;
 }
 
+table.retro-table td.player {
+  text-transform: uppercase;
+}
+
 table.retro-table td.points {
   color: var(--green);
   font-weight: bold;

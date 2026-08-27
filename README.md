@@ -14,7 +14,7 @@ Scoring for league table:
 
 A summary of their results is emailed to them at the end of the gameweek.
 
-## Technology stack
+## Tech stack
 
 **Runtime & language**
 - [Cloudflare Workers](https://developers.cloudflare.com/workers/) - serverless runtime hosting the whole app (API + static assets)
@@ -23,7 +23,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 
 **Data & storage**
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) - serverless SQLite database (players, predictions, gameweeks, results)
-- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek open/lock/score and deadline reminders
+- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek sync and deadline reminders
 
 **Frontend**
 - Static HTML/CSS/vanilla JavaScript (no framework/build step) served via [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), styled to look like a Ceefax/teletext service
@@ -44,62 +44,6 @@ A summary of their results is emailed to them at the end of the gameweek.
 
 No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Brevo.
 
-## Setting up your own league
-
-1. **Fork this repo** on GitHub - you'll push to your fork's `main` branch to deploy.
-
-2. **football-data.org token** - register a free account at
-   [football-data.org/client/register](https://www.football-data.org/client/register) and copy
-   your API token.
-
-3. **Cloudflare account** - sign up at [dash.cloudflare.com](https://dash.cloudflare.com) if you
-   don't already have one (the free tier covers this app).
-
-4. **Create the D1 database**
-
-   ```
-   npx wrangler login
-   npx wrangler d1 create football-score-predictor
-   ```
-
-   Copy the `database_id` it prints into `wrangler.toml` (replacing
-   `REPLACE_WITH_YOUR_D1_DATABASE_ID`).
-
-5. **Set up emailing** - this is used for "forgot PIN" links and gameweek results) - sent via
-   [Brevo](https://www.brevo.com). Register a free account, then verify a single sender address
-   under Senders & IP -> Senders (no domain/DNS setup needed - just click the confirmation link
-   Brevo emails to that address), and copy an API key.
-
-   You'll set `EMAIL_FROM` to your verified Brevo sender address as a secret in step 7 below - it's
-   kept out of `wrangler.toml` since it may be a personal address you don't want committed to a
-   public repo.
-
-   Also update `APP_URL` in `wrangler.toml` to your Worker's URL once you know it (its
-   `*.workers.dev` URL, or a custom domain) - reminder emails link back to it so players can go
-   make their picks.
-
-6. **Run the schema migration against the remote database**
-
-   ```
-   npm run db:migrate:remote
-   ```
-
-   This creates the tables and seeds the "CPU" system account.
-
-7. **Deploy once manually**, to create the Worker and set its secrets:
-
-   ```
-   npx wrangler deploy
-   npx wrangler secret put FOOTBALL_DATA_TOKEN
-   npx wrangler secret put BREVO_API_KEY
-   npx wrangler secret put EMAIL_FROM
-   ```
-
-8. **Set up automatic deploys via GitHub Actions** - add a repo secret named
-   `CLOUDFLARE_API_TOKEN` (Settings → Secrets and variables → Actions) with a
-   [Cloudflare API token](https://dash.cloudflare.com/profile/api-tokens) that has Workers Scripts
-   edit and D1 edit permissions. From then on, every push to `main` runs
-   [.github/workflows/deploy.yml](.github/workflows/deploy.yml) and redeploys automatically.
 
 ## Local development
 
@@ -116,7 +60,9 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    ```
 
    This creates tables in a local SQLite file (managed by Wrangler/Miniflare) and seeds the "CPU"
-   system account. If you ever want a clean slate, just delete `.wrangler/state` and re-run this
+   system account. 
+   
+   If you ever want a clean slate, just delete `.wrangler/state` and re-run this
    command.
 
 3. **Create a `.dev.vars` file** in the project root (gitignored - never commit it) with your own
@@ -137,18 +83,15 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    Opens the Worker locally (including the local D1 instance and the static UI) at the URL
    Wrangler prints.
 
-**Local dev never runs the Cron Triggers by itself** - Miniflare doesn't fire them on a schedule;
-that only happens for real once deployed. To test locally, POST to the special endpoint
-`npm run dev` exposes. 
 
-There are two schedules (see `wrangler.toml`), so pass `?cron=` to pick which
-one fires - omitting it runs whichever is first in the `crons` array (the daily job):
+**N.B. local dev never runs the Cron Triggers by itself** - Miniflare doesn't fire them on a schedule.
+To test them locally, call the endpoints below as below:
 
 ```
-# Daily job: open/lock/score gameweeks (against live football-data.org data)
-curl -X POST http://127.0.0.1:8787/__scheduled
+# sync gameweeks (open / lock / score):
+curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 
-# Reminder check: email anyone missing predictions, if the 24h/3h-before window has been reached
+# email anyone missing predictions:
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
 ```
 
@@ -156,7 +99,15 @@ curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
 
 Deploys happen automatically: pushing to `main` triggers
 [.github/workflows/deploy.yml](.github/workflows/deploy.yml), which type-checks, runs the test
-suite, and runs `wrangler deploy` using the `CLOUDFLARE_API_TOKEN` repo secret set up above.
+suite, applies the schema migration to the remote database (`npm run db:migrate:remote`), and runs
+`wrangler deploy` - all using the `CLOUDFLARE_API_TOKEN` repo secret. 
+
+That token therefore needs D1 edit permission as well as Workers Scripts edit.
+
+Because the migration runs on every deploy, keep `src/db/schema.sql` additive and idempotent -
+`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `INSERT OR IGNORE`. 
+Anything destructive (dropping a column, changing a type) needs a real migration tool such as
+[`wrangler d1 migrations`](https://developers.cloudflare.com/d1/reference/migrations/).
 
 To deploy manually instead (e.g. before that secret is configured), run:
 

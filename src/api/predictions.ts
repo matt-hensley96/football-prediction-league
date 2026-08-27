@@ -4,6 +4,10 @@ import { json } from '../utils/http';
 
 const VALID_PICKS: readonly Outcome[] = ['HOME', 'AWAY', 'DRAW'];
 
+export function isPredictionSetComplete(pickedFixtureIds: number[], gameweekFixtureCount: number): boolean {
+  return new Set(pickedFixtureIds).size === gameweekFixtureCount;
+}
+
 export async function getCurrentGameweek(request: Request, env: Env): Promise<Response> {
   const gameweek = await env.DB.prepare(
     "SELECT * FROM gameweeks WHERE status IN ('open', 'locked') ORDER BY matchday DESC LIMIT 1",
@@ -72,12 +76,12 @@ export async function submitPredictions(request: Request, env: Env): Promise<Res
   const placeholders = fixtureIds.map(() => '?').join(', ');
 
   const fixtureRows = await env.DB.prepare(
-    `SELECT f.id, g.status AS gameweek_status, g.deadline AS gameweek_deadline
+    `SELECT f.id, f.gameweek_id, g.status AS gameweek_status, g.deadline AS gameweek_deadline
      FROM fixtures f JOIN gameweeks g ON g.id = f.gameweek_id
      WHERE f.id IN (${placeholders})`,
   )
     .bind(...fixtureIds)
-    .all<{ id: number; gameweek_status: string; gameweek_deadline: string }>();
+    .all<{ id: number; gameweek_id: number; gameweek_status: string; gameweek_deadline: string }>();
 
   if (fixtureRows.results.length !== fixtureIds.length) {
     return json({ error: 'Unknown fixture' }, 404);
@@ -88,6 +92,22 @@ export async function submitPredictions(request: Request, env: Env): Promise<Res
 
   if (anyClosed) {
     return json({ error: 'Predictions are closed for this gameweek' }, 403);
+  }
+
+  const gameweekIds = new Set(fixtureRows.results.map((f) => f.gameweek_id));
+
+  if (gameweekIds.size > 1) {
+    return json({ error: 'All predictions must belong to the same gameweek' }, 400);
+  }
+
+  const [gameweekId] = gameweekIds;
+
+  const gameweekFixtureCount = await env.DB.prepare('SELECT COUNT(*) AS count FROM fixtures WHERE gameweek_id = ?')
+    .bind(gameweekId)
+    .first<{ count: number }>();
+
+  if (!isPredictionSetComplete(fixtureIds, gameweekFixtureCount?.count ?? 0)) {
+    return json({ error: 'Predict every fixture in the gameweek before submitting' }, 400);
   }
 
   const statements = picks.map((p) =>

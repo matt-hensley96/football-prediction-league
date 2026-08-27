@@ -151,8 +151,8 @@ function renderAuthForm(onSuccess) {
       const payload = isSignup ? { name, pin, email: form.email.value.trim() || undefined } : { name, pin };
 
       try {
-        const { token } = await api(path, { method: 'POST', body: JSON.stringify(payload) });
-        setLoggedIn(token, name);
+        const { token, name: canonicalName } = await api(path, { method: 'POST', body: JSON.stringify(payload) });
+        setLoggedIn(token, canonicalName || name);
         onSuccess();
       } catch (err) {
         errorEl.textContent = err.message;
@@ -304,7 +304,7 @@ async function renderPredictPage() {
     }
 
     if (isOpen) {
-      app.appendChild(renderSubmitControls(localPicks));
+      app.appendChild(renderSubmitControls(localPicks, fixtures.length));
     }
   } catch (err) {
     loadingMsg.remove();
@@ -344,7 +344,7 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   return card;
 }
 
-function renderSubmitControls(localPicks) {
+function renderSubmitControls(localPicks, fixtureCount) {
   const wrapper = el(`
     <div class="submit-controls">
       <button class="submit-btn" type="button">SUBMIT</button>
@@ -363,8 +363,8 @@ function renderSubmitControls(localPicks) {
     errorEl.style.display = 'none';
     infoEl.style.display = 'none';
 
-    if (picks.length === 0) {
-      errorEl.textContent = 'Pick a result for at least one fixture first.';
+    if (picks.length < fixtureCount) {
+      errorEl.textContent = 'Pick a result for every fixture before submitting.';
       errorEl.style.display = 'block';
 
       return;

@@ -18,7 +18,9 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
     return json({ error: 'username and pin are required' }, 400);
   }
 
-  const user = await env.DB.prepare('SELECT id, name, pin_hash, is_system FROM users WHERE name = ?')
+  const user = await env.DB.prepare(
+    'SELECT id, name, pin_hash, is_system FROM users WHERE name = ? COLLATE NOCASE',
+  )
     .bind(body.name)
     .first<UserRow>();
 
@@ -63,7 +65,9 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
     return json({ error: 'That username is reserved' }, 400);
   }
 
-  const existing = await env.DB.prepare('SELECT id FROM users WHERE name = ?').bind(name).first();
+  const existing = await env.DB.prepare('SELECT id FROM users WHERE name = ? COLLATE NOCASE')
+    .bind(name)
+    .first();
 
   if (existing) {
     return json({ error: 'That username is already taken' }, 409);
@@ -87,7 +91,11 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
   } catch (err) {
     const message = err instanceof Error ? err.message : '';
 
-    if (message.includes('UNIQUE constraint failed')) {
+    if (message.includes('users.name')) {
+      return json({ error: 'That username is already taken' }, 409);
+    }
+
+    if (message.includes('users.email')) {
       return json({ error: 'That email is already registered to another account' }, 409);
     }
 

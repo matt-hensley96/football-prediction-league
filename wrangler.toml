@@ -24,6 +24,6 @@ database_id = "2126719e-e7bf-4842-9b97-6f8cd778b97b"
 [triggers]
 # Two schedules, distinguished in src/index.ts's `scheduled` handler by controller.cron —
 # keep that check in sync if either of these strings changes.
-# "0 8 * * *"     -> once a day: open/lock/score gameweeks (src/cron/handler.ts)
+# "0 8 * * *"     -> once a day: sync gameweeks (src/cron/handler.ts)
 # "*/15 * * * *"  -> every 15 min: send 24h/3h-before-deadline reminder emails (src/cron/reminders.ts)
 crons = ["0 8 * * *", "*/15 * * * *"]

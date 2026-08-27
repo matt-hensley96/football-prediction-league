@@ -6,7 +6,7 @@ import { sendGameweekResultsEmails } from './results-email';
 import type { GameweekPickRow } from './results-email';
 import type { Env, FixtureRow, GameweekRow, Outcome, PredictionRow } from '../types';
 
-export async function runDaily(env: Env): Promise<void> {
+export async function runSync(env: Env): Promise<void> {
   const client = new FootballDataClient(env.FOOTBALL_DATA_TOKEN);
 
   await lockPastDeadlines(env);

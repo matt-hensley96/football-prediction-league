@@ -23,7 +23,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 
 **Data & storage**
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) - serverless SQLite database (players, predictions, gameweeks, results)
-- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek open/lock/score and deadline reminders
+- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek sync and deadline reminders
 
 **Frontend**
 - Static HTML/CSS/vanilla JavaScript (no framework/build step) served via [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), styled to look like a Ceefax/teletext service
@@ -88,10 +88,10 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
 To test them locally, call the endpoints below as below:
 
 ```
-# open/lock/score gameweeks:
-curl -X POST http://127.0.0.1:8787/__scheduled
+# sync gameweeks (open / lock / score):
+curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 
-# email anyone missing predictions@
+# email anyone missing predictions:
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
 ```
 

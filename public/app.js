@@ -82,7 +82,7 @@ async function renderTablePage() {
     app.innerHTML = `
       <h1>League Table</h1>
       <table class="retro-table">
-        <thead><tr><th>Player</th><th>Points</th></tr></thead>
+        <thead><tr><th>Player</th><th class="points">Points</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     `;

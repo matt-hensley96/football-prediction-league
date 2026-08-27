@@ -3,7 +3,7 @@ import { getHistory } from './api/history';
 import { handleForgotPin, handleResetPin } from './api/pin-reset';
 import { getCurrentGameweek, submitPredictions } from './api/predictions';
 import { getLeagueTable } from './api/table';
-import { runDaily } from './cron/handler';
+import { runSync } from './cron/handler';
 import { checkAndSendReminders } from './cron/reminders';
 import type { Env } from './types';
 
@@ -58,7 +58,7 @@ export default {
     if (controller.cron === REMINDER_CRON) {
       await checkAndSendReminders(env);
     } else {
-      await runDaily(env);
+      await runSync(env);
     }
   },
 } satisfies ExportedHandler<Env>;

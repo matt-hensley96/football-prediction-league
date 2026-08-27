@@ -151,8 +151,8 @@ function renderAuthForm(onSuccess) {
       const payload = isSignup ? { name, pin, email: form.email.value.trim() || undefined } : { name, pin };
 
       try {
-        const { token } = await api(path, { method: 'POST', body: JSON.stringify(payload) });
-        setLoggedIn(token, name);
+        const { token, name: canonicalName } = await api(path, { method: 'POST', body: JSON.stringify(payload) });
+        setLoggedIn(token, canonicalName || name);
         onSuccess();
       } catch (err) {
         errorEl.textContent = err.message;

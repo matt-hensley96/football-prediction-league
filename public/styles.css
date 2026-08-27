@@ -152,10 +152,18 @@ table.retro-table th {
   font-size: 14px;
 }
 
+table.retro-table td.player {
+  text-transform: uppercase;
+}
+
+table.retro-table th.points,
+table.retro-table td.points {
+  text-align: center;
+}
+
 table.retro-table td.points {
   color: var(--green);
   font-weight: bold;
-  text-align: right;
 }
 
 table.retro-table tr:first-child td {

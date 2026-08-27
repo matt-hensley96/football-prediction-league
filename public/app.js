@@ -73,7 +73,7 @@ async function renderTablePage() {
       .map(
         (s, i) => `
         <tr>
-          <td>${i + 1}. ${escapeHtml(s.name)}</td>
+          <td class="player">${i + 1}. ${escapeHtml(s.name)}</td>
           <td class="points">${s.points}</td>
         </tr>`,
       )
@@ -82,7 +82,7 @@ async function renderTablePage() {
     app.innerHTML = `
       <h1>League Table</h1>
       <table class="retro-table">
-        <thead><tr><th>Player</th><th>Points</th></tr></thead>
+        <thead><tr><th>Player</th><th class="points">Points</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     `;
@@ -288,7 +288,7 @@ async function renderPredictPage() {
     } else {
       app.appendChild(
         el(
-          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a winner or Draw for each game, then hit Submit.</p>`,
+          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a result for each game, then hit Submit.</p>`,
         ),
       );
     }
@@ -347,7 +347,7 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
 function renderSubmitControls(localPicks, fixtureCount) {
   const wrapper = el(`
     <div class="submit-controls">
-      <button class="submit-btn" type="button">SUBMIT PREDICTIONS</button>
+      <button class="submit-btn" type="button">SUBMIT</button>
       <p class="error-text" style="display:none"></p>
       <p class="info-box" style="display:none"></p>
     </div>

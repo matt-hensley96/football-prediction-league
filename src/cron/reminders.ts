@@ -1,6 +1,5 @@
 import type { Env, GameweekRow } from '../types';
 import { sendEmail } from '../utils/email';
-import { escapeHtml } from '../utils/html';
 
 export type ReminderKind = '24h' | '3h';
 
@@ -71,20 +70,24 @@ async function sendMissingPickReminders(env: Env, gameweek: GameweekRow): Promis
       continue;
     }
 
-    const html = buildReminderEmailHtml(gameweek, player.name, env.APP_URL);
+    const html = buildReminderEmailHtml(gameweek, env.APP_URL);
 
-    await sendEmail(env, player.email, `Don't forget: Matchday ${gameweek.matchday} predictions`, html).catch((err) => {
+    await sendEmail(env, player.email, `Don't forget: Gameweek ${gameweek.matchday} predictions`, html).catch((err) => {
       console.error(`Failed to email reminder to ${player.name}:`, err);
     });
   }
 }
 
-function buildReminderEmailHtml(gameweek: GameweekRow, name: string, appUrl: string): string {
-  const deadline = new Date(gameweek.deadline).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+function buildReminderEmailHtml(gameweek: GameweekRow, appUrl: string): string {
+  const deadline = new Date(gameweek.deadline).toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Europe/London',
+  });
 
   return (
-    `<p>Hi ${escapeHtml(name)}, you haven't submitted all your predictions for Matchday ${gameweek.matchday} yet.</p>` +
+    `<p>You haven't submitted your predictions for gameweek ${gameweek.matchday} yet.</p>` +
     `<p>Deadline: ${deadline}.</p>` +
-    `<p><a href="${appUrl}">Make your picks</a></p>`
+    `<p><a href="${appUrl}">Click here to make your predictions!</a></p>`
   );
 }

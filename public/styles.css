@@ -78,9 +78,9 @@ body {
   color: var(--white);
   border: 2px solid var(--white);
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
-  padding: 8px 4px;
+  padding: 8px 3px;
   cursor: pointer;
 }
 
@@ -166,7 +166,15 @@ table.retro-table td.points {
   font-weight: bold;
 }
 
-table.retro-table tr:first-child td {
+table.retro-table td.points-neg {
+  color: var(--red);
+}
+
+table.retro-table td.points-zero {
+  color: #888888;
+}
+
+table.retro-table.league-table tr:first-child td {
   color: var(--yellow);
 }
 

@@ -86,7 +86,7 @@ function buildReminderEmailHtml(gameweek: GameweekRow, appUrl: string): string {
   });
 
   return (
-    `<p>You haven't submitted your predictions for gameweek ${gameweek.matchday} yet.</p>` +
+    `<p>You haven't submitted your predictions for Gameweek ${gameweek.matchday} yet.</p>` +
     `<p>Deadline: ${deadline}.</p>` +
     `<p><a href="${appUrl}">Click here to make your predictions!</a></p>`
   );

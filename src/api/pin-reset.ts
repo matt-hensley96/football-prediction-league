@@ -1,7 +1,6 @@
 import type { Env } from '../types';
 import { sha256Hex } from '../utils/crypto';
 import { sendEmail } from '../utils/email';
-import { escapeHtml } from '../utils/html';
 import { json } from '../utils/http';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
@@ -18,9 +17,9 @@ export async function handleForgotPin(request: Request, env: Env): Promise<Respo
     return json({ error: 'email is required' }, 400);
   }
 
-  const user = await env.DB.prepare('SELECT id, name FROM users WHERE email = ? AND is_system = 0')
+  const user = await env.DB.prepare('SELECT id FROM users WHERE email = ? AND is_system = 0')
     .bind(email)
-    .first<{ id: number; name: string }>();
+    .first<{ id: number }>();
 
   if (user) {
     const token = crypto.randomUUID();
@@ -38,9 +37,8 @@ export async function handleForgotPin(request: Request, env: Env): Promise<Respo
       env,
       email,
       'Reset your Predictor PIN',
-      `<p>Hi ${escapeHtml(user.name)},</p><p>Click below to set a new PIN. This link expires in 1 hour.</p>` +
-        `<p><a href="${resetUrl.toString()}">${resetUrl.toString()}</a></p>` +
-        `<p>If you didn't ask for this, you can ignore this email.</p>`,
+      `<p>Click below to set a new PIN (link expires in 1 hour):</p>` +
+        `<p><a href="${resetUrl.toString()}">${resetUrl.toString()}</a></p>`,
     );
   }
 

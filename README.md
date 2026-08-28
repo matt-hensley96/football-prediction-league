@@ -1,11 +1,16 @@
 # Football Score Predictor
 
 A teletext/ceefax-styled Premier League prediction game.
-Hosted entirely on Cloudflare's free tier (Workers + D1).
 
-Players create an account with a PIN to log in with.
+Live site hosted entirely on Cloudflare's free tier (Workers + D1):
 
-Every gameweek, players are emailed to prompt them to predict the outcome (home win / draw / away win) of three randomly selected Premier League fixtures.
+https://football-score-predictor.mh96.workers.dev/
+
+## Rules:
+
+Players create an account.
+
+Every gameweek, players are emailed to prompt them to predict the outcome of three randomly selected Premier League fixtures.
 
 Scoring for league table: 
 - **+3** for a correct prediction
@@ -14,7 +19,7 @@ Scoring for league table:
 
 A summary of their results is emailed to them at the end of the gameweek.
 
-## Tech stack
+## Tech stack:
 
 **Runtime & language**
 - [Cloudflare Workers](https://developers.cloudflare.com/workers/) - serverless runtime hosting the whole app (API + static assets)
@@ -33,7 +38,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 - [Vitest](https://vitest.dev/) + [`@cloudflare/vitest-pool-workers`](https://developers.cloudflare.com/workers/testing/vitest-integration/) - test runner, executed inside a real `workerd` environment
 - [GitHub Actions](https://github.com/features/actions) - CI/CD, type-checks + tests + `wrangler deploy` on every push to `main`
 
-## Third-party dependencies
+## Third-party dependencies:
 
 | Service | Used for | Config |
 |---|---|---|
@@ -45,7 +50,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Brevo.
 
 
-## Local development
+## Local development:
 
 1. **Install dependencies**
 
@@ -95,7 +100,7 @@ curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
 ```
 
-## Deploy
+## Deployment process:
 
 Deploys happen automatically: pushing to `main` triggers
 [.github/workflows/deploy.yml](.github/workflows/deploy.yml), which type-checks, runs the test

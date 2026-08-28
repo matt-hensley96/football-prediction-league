@@ -14,7 +14,7 @@ export async function getLeagueTable(env: Env): Promise<Response> {
      LEFT JOIN predictions p ON p.user_id = u.id AND p.points_awarded IS NOT NULL
      WHERE u.deactivated_at IS NULL
      GROUP BY u.id
-     ORDER BY points DESC, u.name ASC`,
+     ORDER BY points DESC, u.name COLLATE NOCASE ASC`,
   ).all<StandingRow>();
 
   return json({ standings: rows.results });

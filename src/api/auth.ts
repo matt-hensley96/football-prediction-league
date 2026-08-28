@@ -19,7 +19,7 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
   }
 
   const user = await env.DB.prepare(
-    'SELECT id, name, pin_hash, is_system FROM users WHERE name = ? COLLATE NOCASE',
+    'SELECT id, name, pin_hash, is_system, deactivated_at FROM users WHERE name = ? COLLATE NOCASE',
   )
     .bind(body.name)
     .first<UserRow>();
@@ -28,6 +28,10 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
 
   if (!user || user.is_system || user.pin_hash !== pinHash) {
     return json({ error: 'Invalid username or PIN' }, 401);
+  }
+
+  if (user.deactivated_at) {
+    await env.DB.prepare('UPDATE users SET deactivated_at = NULL WHERE id = ?').bind(user.id).run();
   }
 
   const token = await createSession(env, user.id);
@@ -85,7 +89,9 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
   let inserted: { id: number } | null;
 
   try {
-    inserted = await env.DB.prepare('INSERT INTO users (name, pin_hash, email) VALUES (?, ?, ?) RETURNING id')
+    inserted = await env.DB.prepare(
+      "INSERT INTO users (name, pin_hash, email, created_at) VALUES (?, ?, ?, datetime('now')) RETURNING id",
+    )
       .bind(name, pinHash, email)
       .first<{ id: number }>();
   } catch (err) {

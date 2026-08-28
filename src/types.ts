@@ -41,4 +41,6 @@ export interface UserRow {
   pin_hash: string;
   is_system: number;
   email: string | null;
+  created_at: string;
+  deactivated_at: string | null;
 }

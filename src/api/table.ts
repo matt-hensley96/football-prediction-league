@@ -12,6 +12,7 @@ export async function getLeagueTable(env: Env): Promise<Response> {
     `SELECT u.name AS name, u.is_system AS is_system, COALESCE(SUM(p.points_awarded), 0) AS points
      FROM users u
      LEFT JOIN predictions p ON p.user_id = u.id AND p.points_awarded IS NOT NULL
+     WHERE u.deactivated_at IS NULL
      GROUP BY u.id
      ORDER BY points DESC, u.name ASC`,
   ).all<StandingRow>();

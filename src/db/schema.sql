@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   pin_hash TEXT NOT NULL,
   is_system INTEGER NOT NULL DEFAULT 0,
-  email TEXT NOT NULL
+  email TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  deactivated_at TEXT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users (name COLLATE NOCASE);

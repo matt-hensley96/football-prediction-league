@@ -63,7 +63,7 @@ export async function checkAndSendSeasonSummary(env: Env, client: FootballDataCl
     `SELECT u.id AS user_id, u.name AS name, u.email AS email, COALESCE(SUM(p.points_awarded), 0) AS points
      FROM users u
      LEFT JOIN predictions p ON p.user_id = u.id AND p.points_awarded IS NOT NULL
-     WHERE u.is_system = 0
+     WHERE u.is_system = 0 AND u.deactivated_at IS NULL
      GROUP BY u.id
      ORDER BY points DESC, u.name ASC`,
   ).all<FinalStandingRow>();

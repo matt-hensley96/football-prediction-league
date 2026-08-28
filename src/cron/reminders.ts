@@ -54,6 +54,7 @@ async function sendMissingPickReminders(env: Env, gameweek: GameweekRow): Promis
     `SELECT u.name AS name, u.email AS email
      FROM users u
      WHERE u.is_system = 0
+     AND u.deactivated_at IS NULL
      AND u.id NOT IN (
        SELECT p.user_id
        FROM predictions p

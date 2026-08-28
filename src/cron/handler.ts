@@ -1,6 +1,7 @@
 import { FootballDataClient } from '../football-data/client';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
 import { outcomeFromWinner, scorePrediction } from '../scoring/scorer';
+import { deactivateInactiveAccounts } from './account-cleanup';
 import { checkAndSendSeasonSummary } from './season-summary';
 import { sendGameweekResultsEmails } from './results-email';
 import type { GameweekPickRow } from './results-email';
@@ -11,6 +12,7 @@ export async function runSync(env: Env): Promise<void> {
 
   await lockPastDeadlines(env);
   await scoreFinishedGameweeks(env, client);
+  await deactivateInactiveAccounts(env);
   await maybeOpenNextGameweek(env, client);
   await checkAndSendSeasonSummary(env, client);
 }
@@ -65,7 +67,8 @@ async function scoreGameweekIfFinished(
             p.pick AS pick, p.points_awarded AS points_awarded
      FROM predictions p
      JOIN users u ON u.id = p.user_id
-     WHERE p.fixture_id IN (SELECT id FROM fixtures WHERE gameweek_id = ?) AND u.is_system = 0`,
+     WHERE p.fixture_id IN (SELECT id FROM fixtures WHERE gameweek_id = ?)
+       AND u.is_system = 0 AND u.deactivated_at IS NULL`,
   )
     .bind(gameweek.id)
     .all<GameweekPickRow>();

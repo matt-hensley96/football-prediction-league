@@ -64,7 +64,7 @@ async function renderTablePage() {
     const { standings } = await api('/table');
 
     if (standings.length === 0) {
-      app.innerHTML = '<h1>League Table</h1><p class="info-box">No scored gameweeks yet.</p>';
+      app.innerHTML = `<h1>League Table</h1><p class="info-box">No scored gameweeks yet.</p>${scoringSystemTable()}`;
 
       return;
     }
@@ -85,10 +85,33 @@ async function renderTablePage() {
         <thead><tr><th>Player</th><th class="points">Points</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
+      ${scoringSystemTable()}
     `;
   } catch (err) {
     app.innerHTML = `<h1>League Table</h1><p class="error-text">${escapeHtml(err.message)}</p>`;
   }
+}
+
+function scoringSystemTable() {
+  return `
+    <table class="retro-table scoring-table">
+      <thead><tr><th>Scoring system</th><th class="points">Points</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Correct prediction</td>
+          <td class="points">+3</td>
+        </tr>
+        <tr>
+          <td>Picked a win, the other team won</td>
+          <td class="points points-neg">-1</td>
+        </tr>
+        <tr>
+          <td>Any other miss (e.g. picked a win, it was a draw)</td>
+          <td class="points points-zero">0</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
 }
 
 function renderAuthForm(onSuccess, intro) {
@@ -440,32 +463,6 @@ function renderHistoryBlock(entry) {
   return block;
 }
 
-function renderRulesPage() {
-  app.innerHTML = `
-    <h1>Rules</h1>
-    <p class="muted">
-      Your picks lock at the gameweek deadline and are scored once every fixture has finished.
-    </p>
-    <table class="retro-table">
-      <thead><tr><th>Scoring system</th><th class="points">Points</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>Correct prediction</td>
-          <td class="points">+3</td>
-        </tr>
-        <tr>
-          <td>Picked a win, the other team won</td>
-          <td class="points points-neg">-1</td>
-        </tr>
-        <tr>
-          <td>Any other miss (e.g. picked a win, it was a draw)</td>
-          <td class="points points-zero">0</td>
-        </tr>
-      </tbody>
-    </table>
-  `;
-}
-
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -482,7 +479,6 @@ function render() {
   });
 
   if (state.page === 'table') return renderTablePage();
-  if (state.page === 'rules') return renderRulesPage();
   if (state.page === 'predict') return renderPredictPage();
   if (state.page === 'history') return renderHistoryPage();
 }

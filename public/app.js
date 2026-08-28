@@ -441,7 +441,7 @@ function renderHistoryBlock(entry) {
       el(`
         <div>
           <strong>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</strong>
-          &mdash; ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
+          - ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
         </div>
       `),
     );

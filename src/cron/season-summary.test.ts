@@ -47,8 +47,8 @@ describe('buildSeasonSummaryEmailHtml', () => {
   it('lists every player in rank order with their points', () => {
     const html = buildSeasonSummaryEmailHtml(standings, [alice], 'Bob');
 
-    expect(html).toContain('1. Alice &mdash; 42 pts');
-    expect(html).toContain('2. Bob &mdash; 30 pts');
+    expect(html).toContain('1. Alice - 42 pts');
+    expect(html).toContain('2. Bob - 30 pts');
   });
 
   it('greets the recipient by name', () => {

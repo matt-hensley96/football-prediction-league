@@ -52,11 +52,11 @@ describe('buildResultsEmailHtml', () => {
 
     const html = buildResultsEmailHtml(gameweek, fixtures, player);
 
-    expect(html).toContain('matchday 5');
+    expect(html).toContain('Gameweek 5 is fully settled. Total points: 3');
     expect(html).toContain('Man Utd vs Arsenal');
     expect(html).toContain('result: HOME');
     expect(html).toContain('you picked HOME (3 pts)');
-    expect(html).toContain('Total points this gameweek: 3');
+    expect(html).not.toContain('Hi Alice');
   });
 
   it("shows 'nothing' when the player didn't pick a fixture", () => {

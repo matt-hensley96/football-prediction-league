@@ -26,13 +26,13 @@ export function buildSeasonSummaryEmailHtml(
   recipientName: string,
 ): string {
   const rows = standings
-    .map((row, index) => `<li>${index + 1}. ${escapeHtml(row.name)} &mdash; ${row.points} pts</li>`)
+    .map((row, index) => `<li>${index + 1}. ${escapeHtml(row.name)} - ${row.points} pts</li>`)
     .join('');
 
   const winnerNames = winners.map((winner) => escapeHtml(winner.name)).join(' &amp; ');
 
   return (
-    `<p>Hi ${escapeHtml(recipientName)}, the season is over &mdash; here's the final table.</p>` +
+    `<p>Hi ${escapeHtml(recipientName)}, the season is over - here's the final table.</p>` +
     `<ol>${rows}</ol>` +
     `<p>Congratulations to ${winnerNames} on winning the league!</p>`
   );

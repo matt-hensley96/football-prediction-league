@@ -43,14 +43,14 @@ export function buildResultsEmailHtml(gameweek: GameweekRow, fixtures: FixtureRo
       const pickLabel = pick ? pick.pick : 'nothing';
       const points = pick?.points_awarded ?? 0;
 
-      return `<li>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)} &mdash; ` +
+      return `<li>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)} - ` +
         `result: ${fixture.result ?? 'N/A'}, you picked ${pickLabel} (${points} pts)</li>`;
     })
     .join('');
 
   return (
-    `<p>Hi ${escapeHtml(player.name)}, matchday ${gameweek.matchday} is fully settled.</p>` +
-    `<ul>${rows}</ul><p>Total points this gameweek: ${player.totalPoints}</p>`
+    `<p>Gameweek ${gameweek.matchday} is fully settled. Total points: ${player.totalPoints}</p>` +
+    `<ul>${rows}</ul>`
   );
 }
 

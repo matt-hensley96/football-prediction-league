@@ -91,7 +91,7 @@ async function renderTablePage() {
   }
 }
 
-function renderAuthForm(onSuccess) {
+function renderAuthForm(onSuccess, intro) {
   const wrapper = el('<div class="auth-wrapper"></div>');
   let mode = 'login';
 
@@ -108,6 +108,8 @@ function renderAuthForm(onSuccess) {
 
       return;
     }
+
+    if (intro) wrapper.appendChild(el(`<p class="muted">${escapeHtml(intro)}</p>`));
 
     const toggle = el(`
       <div class="auth-toggle">
@@ -257,8 +259,7 @@ async function renderPredictPage() {
   app.appendChild(el('<h1>Predictions</h1>'));
 
   if (!state.token) {
-    app.appendChild(el('<p class="muted">Log in (or sign up) to make your picks.</p>'));
-    app.appendChild(renderAuthForm(renderPredictPage));
+    app.appendChild(renderAuthForm(renderPredictPage, 'Log in (or sign up) to make your picks.'));
 
     return;
   }

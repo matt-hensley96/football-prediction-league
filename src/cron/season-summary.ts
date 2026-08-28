@@ -20,11 +20,7 @@ export function getWinners(standings: FinalStandingRow[]): FinalStandingRow[] {
   return standings.filter((row) => row.points === highestPoints);
 }
 
-export function buildSeasonSummaryEmailHtml(
-  standings: FinalStandingRow[],
-  winners: FinalStandingRow[],
-  recipientName: string,
-): string {
+export function buildSeasonSummaryEmailHtml(standings: FinalStandingRow[], winners: FinalStandingRow[]): string {
   const rows = standings
     .map((row, index) => `<li>${index + 1}. ${escapeHtml(row.name)} - ${row.points} pts</li>`)
     .join('');
@@ -32,9 +28,9 @@ export function buildSeasonSummaryEmailHtml(
   const winnerNames = winners.map((winner) => escapeHtml(winner.name)).join(' &amp; ');
 
   return (
-    `<p>Hi ${escapeHtml(recipientName)}, the season is over - here's the final table.</p>` +
-    `<ol>${rows}</ol>` +
-    `<p>Congratulations to ${winnerNames} on winning the league!</p>`
+    `<p>The season is over - here's the final table:</p>` +
+    `<ul>${rows}</ul>` +
+    `<p>Congrats to ${winnerNames} on winning the league!</p>`
   );
 }
 
@@ -81,7 +77,7 @@ async function sendSeasonSummaryEmails(env: Env, standings: FinalStandingRow[]):
       continue;
     }
 
-    const html = buildSeasonSummaryEmailHtml(standings, winners, player.name);
+    const html = buildSeasonSummaryEmailHtml(standings, winners);
 
     await sendEmail(env, player.email, 'Final league table & season wrap-up', html).catch((err) => {
       console.error(`Failed to email season summary to ${player.name}:`, err);

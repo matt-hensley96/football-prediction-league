@@ -45,27 +45,28 @@ describe('buildSeasonSummaryEmailHtml', () => {
   const standings: FinalStandingRow[] = [alice, bob];
 
   it('lists every player in rank order with their points', () => {
-    const html = buildSeasonSummaryEmailHtml(standings, [alice], 'Bob');
+    const html = buildSeasonSummaryEmailHtml(standings, [alice]);
 
     expect(html).toContain('1. Alice - 42 pts');
     expect(html).toContain('2. Bob - 30 pts');
   });
 
-  it('greets the recipient by name', () => {
-    const html = buildSeasonSummaryEmailHtml(standings, [alice], 'Bob');
+  it('opens with the final-table intro and no personal greeting', () => {
+    const html = buildSeasonSummaryEmailHtml(standings, [alice]);
 
-    expect(html).toContain('Hi Bob');
+    expect(html).toContain("The season is over - here's the final table:");
+    expect(html).not.toContain('Hi ');
   });
 
   it('congratulates a single winner by name', () => {
-    const html = buildSeasonSummaryEmailHtml(standings, [alice], 'Bob');
+    const html = buildSeasonSummaryEmailHtml(standings, [alice]);
 
-    expect(html).toContain('Congratulations to Alice on winning the league!');
+    expect(html).toContain('Congrats to Alice on winning the league!');
   });
 
   it('congratulates every tied winner', () => {
-    const html = buildSeasonSummaryEmailHtml(standings, [alice, bob], 'Bob');
+    const html = buildSeasonSummaryEmailHtml(standings, [alice, bob]);
 
-    expect(html).toContain('Congratulations to Alice &amp; Bob on winning the league!');
+    expect(html).toContain('Congrats to Alice &amp; Bob on winning the league!');
   });
 });

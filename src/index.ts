@@ -5,11 +5,11 @@ import { getCurrentGameweek, submitPredictions } from './api/predictions';
 import { getLeagueTable } from './api/table';
 import { syncGameweek } from './cron/handler';
 import { checkAndSendReminders } from './cron/reminders';
-import { runWeeklyCleanup } from './cron/weekly-cleanup';
+import { cleanupUsers } from './cron/cleanup-users';
 import type { Env } from './types';
 
 const REMINDERS_CRON = '0 8 * * *';
-const WEEKLY_CLEANUP_CRON = '0 9 * * 1';
+const USER_CLEANUP_CRON = '0 9 * * 1';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -61,8 +61,8 @@ export default {
       case REMINDERS_CRON:
         await checkAndSendReminders(env);
         break;
-      case WEEKLY_CLEANUP_CRON:
-        await runWeeklyCleanup(env);
+      case USER_CLEANUP_CRON:
+        await cleanupUsers(env);
         break;
       default:
         await syncGameweek(env);

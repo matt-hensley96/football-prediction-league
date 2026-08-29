@@ -103,7 +103,7 @@ curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 ```
 ```
-# weekly - runWeeklyCleanup (deactivate inactive accounts, send the season summary):
+# weekly - cleanupUsers (deactivate inactive accounts, send the season summary):
 
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+9+*+*+1"
 ```

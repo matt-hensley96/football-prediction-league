@@ -15,7 +15,7 @@ export async function syncGameweek(env: Env): Promise<void> {
 
 async function lockPastDeadlines(env: Env): Promise<void> {
   await env.DB.prepare(
-    "UPDATE gameweeks SET status = 'locked' WHERE status = 'open' AND deadline <= datetime('now')",
+    "UPDATE gameweeks SET status = 'locked' WHERE status = 'open' AND datetime(deadline) <= datetime('now')",
   ).run();
 }
 

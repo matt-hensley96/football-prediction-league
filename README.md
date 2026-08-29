@@ -28,7 +28,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 
 **Data & storage**
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) - serverless SQLite database (players, predictions, gameweeks, results)
-- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek sync and deadline reminders
+- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek sync, deadline reminders, and weekly housekeeping
 
 **Frontend**
 - Static HTML/CSS/vanilla JavaScript (no framework/build step) served via [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), styled to look like a Ceefax/teletext service
@@ -90,14 +90,22 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
 
 
 **N.B. local dev never runs the Cron Triggers by itself** - Miniflare doesn't fire them on a schedule.
-To test them locally, call the endpoints below as below:
+To test them locally, call the endpoints below::
 
 ```
-# sync gameweeks (open / lock / score):
-curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
+# every 15 min - syncGameweek (lock past deadlines, score finished fixtures, open the next gameweek):
 
-# email anyone missing predictions:
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
+```
+```
+# daily - checkAndSendReminders (email anyone still missing predictions if the deadline is within 36h):
+
+curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
+```
+```
+# weekly - runWeeklyCleanup (deactivate inactive accounts, send the season summary):
+
+curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+9+*+*+1"
 ```
 
 ## Deployment process:

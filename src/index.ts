@@ -3,11 +3,13 @@ import { getHistory } from './api/history';
 import { handleForgotPin, handleResetPin } from './api/pin-reset';
 import { getCurrentGameweek, submitPredictions } from './api/predictions';
 import { getLeagueTable } from './api/table';
-import { runSync } from './cron/handler';
+import { syncGameweek } from './cron/handler';
 import { checkAndSendReminders } from './cron/reminders';
+import { cleanupUsers } from './cron/cleanup-users';
 import type { Env } from './types';
 
-const REMINDER_CRON = '*/15 * * * *';
+const REMINDERS_CRON = '0 8 * * *';
+const USER_CLEANUP_CRON = '0 9 * * 1';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -55,10 +57,15 @@ export default {
   },
 
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
-    if (controller.cron === REMINDER_CRON) {
-      await checkAndSendReminders(env);
-    } else {
-      await runSync(env);
+    switch (controller.cron) {
+      case REMINDERS_CRON:
+        await checkAndSendReminders(env);
+        break;
+      case USER_CLEANUP_CRON:
+        await cleanupUsers(env);
+        break;
+      default:
+        await syncGameweek(env);
     }
   },
 } satisfies ExportedHandler<Env>;

@@ -22,8 +22,9 @@ database_name = "football-score-predictor"
 database_id = "2126719e-e7bf-4842-9b97-6f8cd778b97b"
 
 [triggers]
-# Two schedules, distinguished in src/index.ts's `scheduled` handler by controller.cron —
-# keep that check in sync if either of these strings changes.
-# "0 8 * * *"     -> once a day: sync gameweeks (src/cron/handler.ts)
-# "*/15 * * * *"  -> every 15 min: send 24h/3h-before-deadline reminder emails (src/cron/reminders.ts)
-crons = ["0 8 * * *", "*/15 * * * *"]
+# Distinguished in src/index.ts's `scheduled` handler by controller.cron — keep that in sync
+# if any of these strings changes.
+# "*/15 * * * *" -> every 15 min: lock deadlines, score finished fixtures, open next gameweek (src/cron/handler.ts)
+# "0 8 * * *"    -> daily: missing-pick reminder emails (src/cron/reminders.ts)
+# "0 9 * * 1"    -> weekly (Mondays): deactivate inactive accounts, season summary (src/cron/cleanup-users.ts)
+crons = ["*/15 * * * *", "0 8 * * *", "0 9 * * 1"]

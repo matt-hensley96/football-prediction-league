@@ -1,17 +1,8 @@
 import type { Env, GameweekRow } from '../types';
 import { sendEmail } from '../utils/email';
 
-export type ReminderKind = '24h' | '3h';
-
-interface ReminderRule {
-  kind: ReminderKind;
-  hoursBefore: number;
-}
-
-const REMINDER_RULES: readonly ReminderRule[] = [
-  { kind: '24h', hoursBefore: 24 },
-  { kind: '3h', hoursBefore: 3 },
-];
+const REMINDER_LEAD_HOURS = 36;
+const REMINDER_KIND = '24h';
 
 export function isReminderDue(now: Date, deadline: Date, hoursBefore: number): boolean {
   return now.getTime() >= deadline.getTime() - hoursBefore * 60 * 60 * 1000;
@@ -24,28 +15,23 @@ export async function checkAndSendReminders(env: Env): Promise<void> {
     return;
   }
 
-  const deadline = new Date(gameweek.deadline);
-  const now = new Date();
-
-  for (const rule of REMINDER_RULES) {
-    if (!isReminderDue(now, deadline, rule.hoursBefore)) {
-      continue;
-    }
-
-    const alreadySent = await env.DB.prepare('SELECT 1 FROM gameweek_reminders WHERE gameweek_id = ? AND kind = ?')
-      .bind(gameweek.id, rule.kind)
-      .first();
-
-    if (alreadySent) {
-      continue;
-    }
-
-    await sendMissingPickReminders(env, gameweek);
-
-    await env.DB.prepare('INSERT INTO gameweek_reminders (gameweek_id, kind) VALUES (?, ?)')
-      .bind(gameweek.id, rule.kind)
-      .run();
+  if (!isReminderDue(new Date(), new Date(gameweek.deadline), REMINDER_LEAD_HOURS)) {
+    return;
   }
+
+  const alreadySent = await env.DB.prepare('SELECT 1 FROM gameweek_reminders WHERE gameweek_id = ? AND kind = ?')
+    .bind(gameweek.id, REMINDER_KIND)
+    .first();
+
+  if (alreadySent) {
+    return;
+  }
+
+  await sendMissingPickReminders(env, gameweek);
+
+  await env.DB.prepare('INSERT INTO gameweek_reminders (gameweek_id, kind) VALUES (?, ?)')
+    .bind(gameweek.id, REMINDER_KIND)
+    .run();
 }
 
 async function sendMissingPickReminders(env: Env, gameweek: GameweekRow): Promise<void> {

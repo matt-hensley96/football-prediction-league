@@ -1,5 +1,5 @@
 import type { Outcome } from '../types';
-import type { FdMatchWinner } from '../football-data/types';
+import type { FdMatch, FdMatchWinner } from '../football-data/types';
 
 /**
  * 3 points for a correct result, -1 for calling a win that was actually a
@@ -23,4 +23,12 @@ export function outcomeFromWinner(winner: FdMatchWinner): Outcome | null {
   if (winner === 'DRAW') return 'DRAW';
 
   return null;
+}
+
+export function outcomeIfFinished(match: FdMatch): Outcome | null {
+  if (match.status !== 'FINISHED') {
+    return null;
+  }
+
+  return outcomeFromWinner(match.score.winner);
 }

@@ -1,4 +1,4 @@
-import type { FdMatchesResponse, FdMatchResponse, FdStandingsResponse } from './types';
+import type { FdMatch, FdMatchesResponse, FdStandingsResponse } from './types';
 
 const BASE_URL = 'https://api.football-data.org/v4';
 
@@ -13,8 +13,8 @@ export class FootballDataClient {
     return this.get<FdMatchesResponse>('/competitions/PL/matches?status=SCHEDULED');
   }
 
-  getMatch(matchId: number): Promise<FdMatchResponse> {
-    return this.get<FdMatchResponse>(`/matches/${matchId}`);
+  getMatch(matchId: number): Promise<FdMatch> {
+    return this.get<FdMatch>(`/matches/${matchId}`);
   }
 
   private async get<T>(path: string): Promise<T> {

@@ -17,8 +17,6 @@ Scoring for league table:
 - **-1** for predicting a win that turns out to be a loss (or vice versa)
 - **0** for any other prediction (e.g. predicting a win that ends in a draw)
 
-A summary of their results is emailed to them at the end of the gameweek.
-
 ## Tech stack:
 
 **Runtime & language**
@@ -44,7 +42,7 @@ A summary of their results is emailed to them at the end of the gameweek.
 |---|---|---|
 | [Cloudflare](https://dash.cloudflare.com) | Hosting (Workers, D1, static assets, cron) | Account login (`wrangler login`) + `CLOUDFLARE_API_TOKEN` repo secret |
 | [football-data.org](https://www.football-data.org/) | Football data sAPI for fixtures, results, and standings | `FOOTBALL_DATA_TOKEN` secret ([client.ts](src/football-data/client.ts)) |
-| [Brevo](https://www.brevo.com) | Transactional email - deadline reminders, gameweek results, PIN reset links | `BREVO_API_KEY` secret ([email.ts](src/utils/email.ts)) |
+| [Brevo](https://www.brevo.com) | Transactional email - deadline reminders, season summary, PIN reset links | `BREVO_API_KEY` secret ([email.ts](src/utils/email.ts)) |
 | [GitHub Actions](https://github.com/features/actions) | CI/CD on push to `main` | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
 
 No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Brevo.

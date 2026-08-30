@@ -1,8 +1,6 @@
 import { FootballDataClient } from '../football-data/client';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
 import { outcomeIfFinished, scorePrediction } from '../scoring/scorer';
-import { sendGameweekResultsEmails } from './results-email';
-import type { GameweekPickRow } from './results-email';
 import type { Env, FixtureRow, GameweekRow, Outcome, PredictionRow } from '../types';
 
 export async function syncGameweek(env: Env): Promise<void> {
@@ -73,7 +71,7 @@ async function scoreFixture(env: Env, fixture: FixtureRow, outcome: Outcome): Pr
 /**
  * A gameweek is settled only once every one of its fixtures has a result. Fixtures are scored
  * individually as each match finishes (so the live league table moves match by match), and this
- * flips the gameweek to 'scored' and sends the results emails on the run that scores the last one.
+ * flips the gameweek to 'scored' on the run that scores the last one.
  */
 async function settleGameweekIfComplete(env: Env, gameweek: GameweekRow): Promise<void> {
   const stillPending = await env.DB.prepare(
@@ -87,23 +85,6 @@ async function settleGameweekIfComplete(env: Env, gameweek: GameweekRow): Promis
   }
 
   await env.DB.prepare("UPDATE gameweeks SET status = 'scored' WHERE id = ?").bind(gameweek.id).run();
-
-  const fixtures = await env.DB.prepare('SELECT * FROM fixtures WHERE gameweek_id = ?')
-    .bind(gameweek.id)
-    .all<FixtureRow>();
-
-  const picks = await env.DB.prepare(
-    `SELECT u.id AS user_id, u.name AS name, u.email AS email, p.fixture_id AS fixture_id,
-            p.pick AS pick, p.points_awarded AS points_awarded
-     FROM predictions p
-     JOIN users u ON u.id = p.user_id
-     WHERE p.fixture_id IN (SELECT id FROM fixtures WHERE gameweek_id = ?)
-       AND u.is_system = 0 AND u.deactivated_at IS NULL`,
-  )
-    .bind(gameweek.id)
-    .all<GameweekPickRow>();
-
-  await sendGameweekResultsEmails(env, gameweek, fixtures.results, picks.results);
 }
 
 /**

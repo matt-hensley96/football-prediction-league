@@ -41,7 +41,7 @@ async function scoreNewlyFinishedFixtures(
   }
 
   for (const fixture of unscored.results) {
-    const { match } = await client.getMatch(fixture.pl_match_id);
+    const match = await client.getMatch(fixture.pl_match_id);
     const outcome = outcomeIfFinished(match);
 
     if (outcome === null) {

@@ -49,7 +49,3 @@ export interface FdMatch {
 export interface FdMatchesResponse {
   matches: FdMatch[];
 }
-
-export interface FdMatchResponse {
-  match: FdMatch;
-}

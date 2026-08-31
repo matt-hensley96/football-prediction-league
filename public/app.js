@@ -435,7 +435,7 @@ async function renderHistoryPage() {
 }
 
 function renderHistoryBlock(entry) {
-  const block = el(`<div class="history-block"><h2>Matchday ${entry.gameweek.matchday}</h2></div>`);
+  const block = el(`<div class="history-block"><h2>Gameweek ${entry.gameweek.matchday}</h2></div>`);
 
   for (const fixture of entry.fixtures) {
     block.appendChild(

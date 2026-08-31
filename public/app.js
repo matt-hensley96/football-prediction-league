@@ -453,7 +453,7 @@ function renderHistoryBlock(entry) {
       block.appendChild(
         el(`
           <div class="result-line">
-            <span>${escapeHtml(pick.name)}: ${OUTCOME_LABELS[pick.pick]}</span>
+            <span>${escapeHtml(pick.name.toUpperCase())}: ${OUTCOME_LABELS[pick.pick]}</span>
             <span class="points">${pick.points_awarded ?? 0}pt</span>
           </div>
         `),

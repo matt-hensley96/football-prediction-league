@@ -4,7 +4,7 @@ const state = {
   userName: localStorage.getItem('predictor_name'),
 };
 
-const OUTCOME_LABELS = { HOME: 'HOME WIN', AWAY: 'AWAY WIN', DRAW: 'DRAW' };
+const OUTCOME_LABELS = { HOME: 'HOME', AWAY: 'AWAY', DRAW: 'DRAW' };
 
 const app = document.getElementById('app');
 
@@ -47,7 +47,12 @@ function formatKickoff(iso) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
+}
+
+function formatTeam(name) {
+  return String(name).replace(/\bFC\b/g, '').replace(/\s{2,}/g, ' ').trim();
 }
 
 function el(html) {
@@ -339,12 +344,12 @@ async function renderPredictPage() {
 function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   const card = el(`
     <div class="fixture-card">
-      <div>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</div>
+      <div>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</div>
       <div class="fixture-kickoff">${formatKickoff(fixture.kickoff_time)}</div>
       <div class="pick-row">
-        <button class="pick-btn" data-pick="HOME" type="button">${escapeHtml(fixture.home_team)}</button>
+        <button class="pick-btn" data-pick="HOME" type="button">${escapeHtml(formatTeam(fixture.home_team))}</button>
         <button class="pick-btn" data-pick="DRAW" type="button">DRAW</button>
-        <button class="pick-btn" data-pick="AWAY" type="button">${escapeHtml(fixture.away_team)}</button>
+        <button class="pick-btn" data-pick="AWAY" type="button">${escapeHtml(formatTeam(fixture.away_team))}</button>
       </div>
     </div>
   `);
@@ -434,13 +439,13 @@ async function renderHistoryPage() {
 }
 
 function renderHistoryBlock(entry) {
-  const block = el(`<div class="history-block"><h2>Matchday ${entry.gameweek.matchday}</h2></div>`);
+  const block = el(`<div class="history-block"><h2>Gameweek ${entry.gameweek.matchday}</h2></div>`);
 
   for (const fixture of entry.fixtures) {
     block.appendChild(
       el(`
         <div>
-          <strong>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</strong>
+          <strong>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</strong>
           - ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
         </div>
       `),
@@ -452,7 +457,7 @@ function renderHistoryBlock(entry) {
       block.appendChild(
         el(`
           <div class="result-line">
-            <span>${escapeHtml(pick.name)}: ${OUTCOME_LABELS[pick.pick]}</span>
+            <span>${escapeHtml(pick.name.toUpperCase())}: ${OUTCOME_LABELS[pick.pick]}</span>
             <span class="points">${pick.points_awarded ?? 0}pt</span>
           </div>
         `),
@@ -494,6 +499,7 @@ function tickClock() {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
 }
 

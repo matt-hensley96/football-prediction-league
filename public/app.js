@@ -51,6 +51,10 @@ function formatKickoff(iso) {
   });
 }
 
+function formatTeam(name) {
+  return String(name).replace(/\bFC\b/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 function el(html) {
   const template = document.createElement('template');
   template.innerHTML = html.trim();
@@ -340,12 +344,12 @@ async function renderPredictPage() {
 function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   const card = el(`
     <div class="fixture-card">
-      <div>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</div>
+      <div>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</div>
       <div class="fixture-kickoff">${formatKickoff(fixture.kickoff_time)}</div>
       <div class="pick-row">
-        <button class="pick-btn" data-pick="HOME" type="button">${escapeHtml(fixture.home_team)}</button>
+        <button class="pick-btn" data-pick="HOME" type="button">${escapeHtml(formatTeam(fixture.home_team))}</button>
         <button class="pick-btn" data-pick="DRAW" type="button">DRAW</button>
-        <button class="pick-btn" data-pick="AWAY" type="button">${escapeHtml(fixture.away_team)}</button>
+        <button class="pick-btn" data-pick="AWAY" type="button">${escapeHtml(formatTeam(fixture.away_team))}</button>
       </div>
     </div>
   `);
@@ -441,7 +445,7 @@ function renderHistoryBlock(entry) {
     block.appendChild(
       el(`
         <div>
-          <strong>${escapeHtml(fixture.home_team)} vs ${escapeHtml(fixture.away_team)}</strong>
+          <strong>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</strong>
           - ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
         </div>
       `),

@@ -4,7 +4,7 @@ const state = {
   userName: localStorage.getItem('predictor_name'),
 };
 
-const OUTCOME_LABELS = { HOME: 'HOME WIN', AWAY: 'AWAY WIN', DRAW: 'DRAW' };
+const OUTCOME_LABELS = { HOME: 'HOME', AWAY: 'AWAY', DRAW: 'DRAW' };
 
 const app = document.getElementById('app');
 
@@ -47,6 +47,7 @@ function formatKickoff(iso) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
 }
 
@@ -494,6 +495,7 @@ function tickClock() {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
 }
 

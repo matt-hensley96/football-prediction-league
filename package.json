@@ -10,8 +10,12 @@
     "typecheck": "tsc --noEmit",
     "db:migrate:local": "wrangler d1 execute football-score-predictor --local --file=./src/db/schema.sql",
     "db:migrate:remote": "wrangler d1 execute football-score-predictor --remote --file=./src/db/schema.sql",
+    "db:migrate:mock:local": "wrangler d1 execute football-score-predictor --local --file=./src/db/mock-schema.sql",
     "db:seed:local": "wrangler d1 execute football-score-predictor --local --file=./scripts/seed-users.sql",
-    "db:seed:remote": "wrangler d1 execute football-score-predictor --remote --file=./scripts/seed-users.sql"
+    "db:seed:remote": "wrangler d1 execute football-score-predictor --remote --file=./scripts/seed-users.sql",
+    "mock:reset": "curl -X POST http://127.0.0.1:8787/api/dev/mock/reset",
+    "mock:advance": "curl -X POST http://127.0.0.1:8787/api/dev/mock/advance",
+    "mock:state": "curl http://127.0.0.1:8787/api/dev/mock/state"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.0",

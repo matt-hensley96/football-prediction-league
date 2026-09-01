@@ -4,6 +4,7 @@ export interface Env {
   BREVO_API_KEY: string;
   EMAIL_FROM: string;
   APP_URL: string;
+  USE_MOCK_FOOTBALL_DATA?: string;
 }
 
 export type Outcome = 'HOME' | 'AWAY' | 'DRAW';

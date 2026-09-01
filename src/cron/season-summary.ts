@@ -1,4 +1,4 @@
-import type { FootballDataClient } from '../football-data/client';
+import type { FootballDataApi } from '../football-data/types';
 import type { Env } from '../types';
 import { sendEmail } from '../utils/email';
 import { escapeHtml } from '../utils/html';
@@ -34,7 +34,7 @@ export function buildSeasonSummaryEmailHtml(standings: FinalStandingRow[], winne
   );
 }
 
-export async function checkAndSendSeasonSummary(env: Env, client: FootballDataClient): Promise<void> {
+export async function checkAndSendSeasonSummary(env: Env, client: FootballDataApi): Promise<void> {
   const pendingGameweek = await env.DB.prepare("SELECT 1 FROM gameweeks WHERE status != 'scored' LIMIT 1").first();
 
   if (pendingGameweek) {

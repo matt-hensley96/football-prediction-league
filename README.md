@@ -26,7 +26,7 @@ The league table is then scored as follows:
 
 **Data & storage**
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) - serverless SQLite database (players, predictions, gameweeks, results)
-- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - scheduled jobs for gameweek sync, deadline reminders, and weekly housekeeping
+- [Cloudflare Workers Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) - a daily gameweek-sync, deadline reminders, and weekly housekeeping
 
 **Frontend**
 - Static HTML/CSS/vanilla JavaScript (no framework/build step) served via [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), styled to look like a Ceefax/teletext service
@@ -92,16 +92,25 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    Wrangler prints.
 
 
+The gameweek sync normally runs on demand - just load the UI, or call it directly:
+
+```
+# syncGameweek (lock past deadlines, score finished fixtures, open the next gameweek).
+# No-ops if a sync ran in the last 15 minutes:
+
+curl -X POST "http://127.0.0.1:8787/api/sync"
+```
+
 **N.B. local dev never runs the Cron Triggers by itself** - Miniflare doesn't fire them on a schedule.
 To test them locally, call the endpoints below::
 
 ```
-# every 15 min - syncGameweek (lock past deadlines, score finished fixtures, open the next gameweek):
+# daily at 6am - syncGameweek (same work as POST /api/sync, but unconditional):
 
-curl -X POST "http://127.0.0.1:8787/__scheduled?cron=*%2F15+*+*+*+*"
+curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+6+*+*+*"
 ```
 ```
-# daily - checkAndSendReminders (email anyone still missing predictions if the deadline is within 36h):
+# daily at 8am checkAndSendReminders (email anyone still missing predictions if the deadline is within 36h):
 
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 ```

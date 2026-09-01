@@ -3,14 +3,16 @@ import { handleMockAdvance, handleMockReset, handleMockState, isMockEnabled } fr
 import { getHistory } from './api/history';
 import { handleForgotPin, handleResetPin } from './api/pin-reset';
 import { getCurrentGameweek, submitPredictions } from './api/predictions';
+import { handleSyncRequest } from './api/sync';
 import { getLeagueTable } from './api/table';
 import { syncGameweek } from './cron/handler';
 import { checkAndSendReminders } from './cron/reminders';
 import { cleanupUsers } from './cron/cleanup-users';
+import { markSynced } from './cron/sync-state';
 import type { Env } from './types';
 
-const REMINDERS_CRON = '0 8 * * *';
-const USER_CLEANUP_CRON = '0 9 * * 1';
+const DAILY_CRON = '0 8 * * *';
+const WEEKLY_CRON = '0 9 * * 1';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -49,6 +51,10 @@ export default {
         return await getHistory(env);
       }
 
+      if (pathname === '/api/sync' && request.method === 'POST') {
+        return await handleSyncRequest(env);
+      }
+
       if (pathname.startsWith('/api/dev/mock/') && isMockEnabled(env)) {
         if (pathname === '/api/dev/mock/reset' && request.method === 'POST') {
           return await handleMockReset(env);
@@ -73,14 +79,14 @@ export default {
 
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
     switch (controller.cron) {
-      case REMINDERS_CRON:
-        await checkAndSendReminders(env);
-        break;
-      case USER_CLEANUP_CRON:
+      case WEEKLY_CRON:
         await cleanupUsers(env);
         break;
+      case DAILY_CRON:
       default:
         await syncGameweek(env);
+        await markSynced(env);
+        await checkAndSendReminders(env);
     }
   },
 } satisfies ExportedHandler<Env>;

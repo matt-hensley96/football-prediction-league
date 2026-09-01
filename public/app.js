@@ -40,6 +40,17 @@ async function api(path, options) {
   return data;
 }
 
+// Fire-and-forget: asks the server to refresh gameweek data if its last sync is stale.
+// The server no-ops when a sync ran within the last 15 minutes, so calling this on every
+// render is cheap. Never awaited, so it can't delay or break a render.
+function requestSyncIfStale() {
+  api('/sync', { method: 'POST' })
+    .then((result) => {
+      if (result.synced && state.page === 'table') render();
+    })
+    .catch(() => {});
+}
+
 function formatKickoff(iso) {
   return new Date(iso).toLocaleString(undefined, {
     weekday: 'short',
@@ -535,6 +546,8 @@ function escapeHtml(str) {
 }
 
 function render() {
+  requestSyncIfStale();
+
   document.querySelectorAll('.page-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.page === state.page);
   });

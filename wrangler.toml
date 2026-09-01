@@ -24,7 +24,8 @@ database_id = "2126719e-e7bf-4842-9b97-6f8cd778b97b"
 [triggers]
 # Distinguished in src/index.ts's `scheduled` handler by controller.cron — keep that in sync
 # if any of these strings changes.
-# "*/15 * * * *" -> every 15 min: lock deadlines, score finished fixtures, open next gameweek (src/cron/handler.ts)
-# "0 8 * * *"    -> daily: missing-pick reminder emails (src/cron/reminders.ts)
-# "0 9 * * 1"    -> weekly (Mondays): deactivate inactive accounts, season summary (src/cron/cleanup-users.ts)
-crons = ["*/15 * * * *", "0 8 * * *", "0 9 * * 1"]
+# "0 8 * * *"    -> Daily (at 8am): lock deadlines, score finished fixtures, open next gameweek
+#                  (src/cron/handler.ts), then send missing-pick reminder emails (src/cron/reminders.ts).
+#                  Between runs the site itself keeps the state fresh via POST /api/sync (src/api/sync.ts).
+# "0 9 * * 1"    -> Weekly (at 9am on Mondays): deactivate inactive accounts, season summary (src/cron/cleanup-users.ts)
+crons = ["0 8 * * *", "0 9 * * 1"]

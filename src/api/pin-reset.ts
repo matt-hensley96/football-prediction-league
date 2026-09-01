@@ -36,7 +36,7 @@ export async function handleForgotPin(request: Request, env: Env): Promise<Respo
     await sendEmail(
       env,
       email,
-      'Reset your Predictor PIN',
+      'Reset your Football Predictor PIN',
       `<p>Click below to set a new PIN (link expires in 1 hour):</p>` +
         `<p><a href="${resetUrl.toString()}">${resetUrl.toString()}</a></p>`,
     );

@@ -1,4 +1,4 @@
-# Football Score Predictor
+# Football Predictor
 
 A teletext/ceefax-styled Premier League prediction game.
 

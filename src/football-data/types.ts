@@ -49,3 +49,9 @@ export interface FdMatch {
 export interface FdMatchesResponse {
   matches: FdMatch[];
 }
+
+export interface FootballDataApi {
+  getStandings(): Promise<FdStandingsResponse>;
+  getScheduledMatches(): Promise<FdMatchesResponse>;
+  getMatch(matchId: number): Promise<FdMatch>;
+}

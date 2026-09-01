@@ -1,8 +1,8 @@
-import type { FdMatch, FdMatchesResponse, FdStandingsResponse } from './types';
+import type { FdMatch, FdMatchesResponse, FdStandingsResponse, FootballDataApi } from './types';
 
 const BASE_URL = 'https://api.football-data.org/v4';
 
-export class FootballDataClient {
+export class FootballDataClient implements FootballDataApi {
   constructor(private readonly token: string) {}
 
   getStandings(): Promise<FdStandingsResponse> {

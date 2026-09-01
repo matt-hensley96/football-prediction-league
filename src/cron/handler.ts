@@ -1,10 +1,11 @@
-import { FootballDataClient } from '../football-data/client';
+import { createFootballDataClient } from '../football-data/factory';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
+import type { FootballDataApi } from '../football-data/types';
 import { outcomeIfFinished, scorePrediction } from '../scoring/scorer';
 import type { Env, FixtureRow, GameweekRow, Outcome, PredictionRow } from '../types';
 
 export async function syncGameweek(env: Env): Promise<void> {
-  const client = new FootballDataClient(env.FOOTBALL_DATA_TOKEN);
+  const client = createFootballDataClient(env);
 
   await lockPastDeadlines(env);
   await scoreFinishedFixtures(env, client);
@@ -17,7 +18,7 @@ async function lockPastDeadlines(env: Env): Promise<void> {
   ).run();
 }
 
-async function scoreFinishedFixtures(env: Env, client: FootballDataClient): Promise<void> {
+async function scoreFinishedFixtures(env: Env, client: FootballDataApi): Promise<void> {
   const lockedGameweeks = await env.DB.prepare("SELECT * FROM gameweeks WHERE status = 'locked'").all<GameweekRow>();
 
   for (const gameweek of lockedGameweeks.results) {
@@ -27,7 +28,7 @@ async function scoreFinishedFixtures(env: Env, client: FootballDataClient): Prom
 
 async function scoreNewlyFinishedFixtures(
   env: Env,
-  client: FootballDataClient,
+  client: FootballDataApi,
   gameweek: GameweekRow,
 ): Promise<void> {
   const unscored = await env.DB.prepare('SELECT * FROM fixtures WHERE gameweek_id = ? AND result IS NULL')
@@ -93,7 +94,7 @@ async function settleGameweekIfComplete(env: Env, gameweek: GameweekRow): Promis
  * instead of a fixed lead-time-before-kickoff window, since the group would rather have the next
  * predictions open as soon as the previous ones are settled.
  */
-async function maybeOpenNextGameweek(env: Env, client: FootballDataClient): Promise<void> {
+async function maybeOpenNextGameweek(env: Env, client: FootballDataApi): Promise<void> {
   const pendingGameweek = await env.DB.prepare("SELECT 1 FROM gameweeks WHERE status != 'scored' LIMIT 1").first();
 
   if (pendingGameweek) {

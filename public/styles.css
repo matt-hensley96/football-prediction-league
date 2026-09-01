@@ -302,6 +302,51 @@ table.retro-table.scoring-table {
   cursor: not-allowed;
 }
 
+.fixture-card.resolved .pick-btn {
+  cursor: default;
+}
+
+.fixture-card.resolved .pick-btn.selected {
+  opacity: 1;
+}
+
+.fixture-card.verdict-correct {
+  border-color: var(--green);
+  border-width: 2px;
+}
+
+.fixture-card.verdict-wrong {
+  border-color: var(--red);
+  border-width: 2px;
+}
+
+.verdict {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.verdict .verdict-detail {
+  color: var(--cyan);
+  font-weight: normal;
+}
+
+.fixture-card.verdict-correct .verdict-status {
+  color: var(--green);
+}
+
+.fixture-card.verdict-wrong .verdict-status {
+  color: var(--red);
+}
+
+.fixture-card.verdict-nopick .verdict-status {
+  color: #888888;
+}
+
 .history-block {
   border-top: 2px solid var(--yellow);
   padding-top: 8px;

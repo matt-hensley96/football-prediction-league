@@ -1,5 +1,4 @@
-import type { FootballDataClient } from './client';
-import type { FdMatch } from './types';
+import type { FdMatch, FootballDataApi } from './types';
 
 export interface SelectedGameweek {
   matchday: number;
@@ -21,7 +20,7 @@ function pickRandomFixtures(matches: FdMatch[]): [FdMatch, FdMatch, FdMatch] | n
  * next matchday has fewer than 3 scheduled Premier League matches.
  */
 export async function determineNextGameweekFixtures(
-  client: FootballDataClient,
+  client: FootballDataApi,
   existingMatchdays: Set<number>,
 ): Promise<SelectedGameweek | null> {
   const matchesResponse = await client.getScheduledMatches();

@@ -1,4 +1,5 @@
 import { handleLogin, handleSignup } from './api/auth';
+import { handleMockAdvance, handleMockReset, handleMockState, isMockEnabled } from './api/dev-mock';
 import { getHistory } from './api/history';
 import { handleForgotPin, handleResetPin } from './api/pin-reset';
 import { getCurrentGameweek, submitPredictions } from './api/predictions';
@@ -46,6 +47,20 @@ export default {
 
       if (pathname === '/api/history' && request.method === 'GET') {
         return await getHistory(env);
+      }
+
+      if (pathname.startsWith('/api/dev/mock/') && isMockEnabled(env)) {
+        if (pathname === '/api/dev/mock/reset' && request.method === 'POST') {
+          return await handleMockReset(env);
+        }
+
+        if (pathname === '/api/dev/mock/advance' && request.method === 'POST') {
+          return await handleMockAdvance(env);
+        }
+
+        if (pathname === '/api/dev/mock/state' && request.method === 'GET') {
+          return await handleMockState(env);
+        }
       }
 
       return new Response('Not found', { status: 404 });

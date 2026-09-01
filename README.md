@@ -8,11 +8,11 @@ https://football-score-predictor.mh96.workers.dev/
 
 ## Rules:
 
-Players create an account.
+Players create an account with a PIN.
 
-Every gameweek, players are emailed to prompt them to predict the outcome of three randomly selected Premier League fixtures.
+Every gameweek, players are prompted to predict the outcome of three randomly selected Premier League fixtures.
 
-Scoring for league table: 
+The league table is then scored as follows:
 - **+3** for a correct prediction
 - **-1** for predicting a win that turns out to be a loss (or vice versa)
 - **0** for any other prediction (e.g. predicting a win that ends in a draw)
@@ -77,6 +77,11 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    EMAIL_FROM=your-verified-brevo-sender@example.com
    ```
 
+   To run without any real football-data.org token, add `USE_MOCK_FOOTBALL_DATA=true` - see
+   [Local testing with the mock football-data API](#local-testing-with-the-mock-football-data-api)
+   below. With the mock on, `FOOTBALL_DATA_TOKEN` is unused and the Brevo values can be dummies
+   (email sends just fail and are logged).
+
 4. **Start the dev server**
 
    ```
@@ -106,9 +111,52 @@ curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+9+*+*+1"
 ```
 
+## Local testing with the mock football-data API
+
+Set `USE_MOCK_FOOTBALL_DATA=true` in `.dev.vars`.
+
+This swaps the real football-data.org client
+for [`MockFootballDataClient`](src/football-data/mock-client.ts), which serves three Gameweeks of fixtures and results ([`src/football-data/mock-data.ts`](src/football-data/mock-data.ts)).
+
+Progress is stepped forward by hand via three test endpoints outlined further down. Each step also runs the sync job, so the app reacts in the same call.
+
+Setup (one-off, alongside the normal steps above):
+
+```
+npm run db:migrate:mock:local   # creates the mock_football_state table locally
+```
+
+Then, after  `npm run dev`, run:
+
+```
+npm run mock:reset     
+# This wipes gameweeks and opens a fresh 'Gameweek 1'
+# Then you can open the UI, sign up, predict all 3 fixtures
+
+npm run mock:advance
+# This locks the gameweek (simulating the deadline passing)
+
+npm run mock:advance   
+# fixture 1 finishes and is scored
+
+npm run mock:advance   
+# fixture 2 finishes and is scored
+
+npm run mock:advance   
+# fixture 3 finishes -> gameweek ends -> matchday 2 opens
+
+npm run mock:state     # inspect current gameweek, per-fixture results, and what the next advance does
+```
+
+Repeat the four `mock:advance` calls to roll through Gameweeks 2 and 3. After Gameweek 3 is
+scored there are no more mock fixtures, so no further gameweek opens. 
+
+`npm run mock:reset`
+starts the loop over.
+
 ## Deployment process:
 
-Deploys happen automatically: pushing to `main` triggers
+Deployments happen automatically: pushing to `main` triggers
 [.github/workflows/deploy.yml](.github/workflows/deploy.yml), which type-checks, runs the test
 suite, applies the schema migration to the remote database (`npm run db:migrate:remote`), and runs
 `wrangler deploy` - all using the `CLOUDFLARE_API_TOKEN` repo secret. 
@@ -120,7 +168,7 @@ Because the migration runs on every deploy, keep `src/db/schema.sql` additive an
 Anything destructive (dropping a column, changing a type) needs a real migration tool such as
 [`wrangler d1 migrations`](https://developers.cloudflare.com/d1/reference/migrations/).
 
-To deploy manually instead (e.g. before that secret is configured), run:
+To deploy manually instead, run:
 
 ```
 npm run deploy

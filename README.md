@@ -105,12 +105,8 @@ curl -X POST "http://127.0.0.1:8787/api/sync"
 To test them locally, call the endpoints below::
 
 ```
-# daily at 6am - syncGameweek (same work as POST /api/sync, but unconditional):
-
-curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+6+*+*+*"
-```
-```
-# daily at 8am checkAndSendReminders (email anyone still missing predictions if the deadline is within 36h):
+# daily at 8am - syncGameweek (same work as POST /api/sync, but unconditional),
+# then checkAndSendReminders (email anyone still missing predictions if the deadline is within 36h):
 
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 ```

@@ -11,9 +11,8 @@ import { cleanupUsers } from './cron/cleanup-users';
 import { markSynced } from './cron/sync-state';
 import type { Env } from './types';
 
-const SYNC_CRON = '0 6 * * *';
-const REMINDERS_CRON = '0 8 * * *';
-const USER_CLEANUP_CRON = '0 9 * * 1';
+const DAILY_CRON = '0 8 * * *';
+const WEEKLY_CRON = '0 9 * * 1';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -80,16 +79,14 @@ export default {
 
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
     switch (controller.cron) {
-      case REMINDERS_CRON:
-        await checkAndSendReminders(env);
-        break;
-      case USER_CLEANUP_CRON:
+      case WEEKLY_CRON:
         await cleanupUsers(env);
         break;
-      case SYNC_CRON:
+      case DAILY_CRON:
       default:
         await syncGameweek(env);
         await markSynced(env);
+        await checkAndSendReminders(env);
     }
   },
 } satisfies ExportedHandler<Env>;

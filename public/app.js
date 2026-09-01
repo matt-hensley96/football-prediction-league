@@ -356,6 +356,12 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
 
   const buttons = card.querySelectorAll('.pick-btn');
 
+  if (fixture.result) {
+    markResolvedFixture(card, buttons, fixture, currentPick);
+
+    return card;
+  }
+
   buttons.forEach((btn) => {
     if (btn.dataset.pick === currentPick) {
       btn.classList.add('selected');
@@ -371,6 +377,56 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   });
 
   return card;
+}
+
+function markResolvedFixture(card, buttons, fixture, currentPick) {
+  const hasPick = currentPick != null;
+  const isCorrect = hasPick && currentPick === fixture.result;
+  const verdictClass = isCorrect ? 'verdict-correct' : hasPick ? 'verdict-wrong' : 'verdict-nopick';
+
+  card.classList.add('resolved', verdictClass);
+
+  buttons.forEach((btn) => {
+    btn.disabled = true;
+
+    if (btn.dataset.pick === currentPick) {
+      btn.classList.add('selected');
+    }
+  });
+
+  card.appendChild(renderVerdict(fixture, currentPick));
+}
+
+function renderVerdict(fixture, currentPick) {
+  const hasPick = currentPick != null;
+  const isCorrect = hasPick && currentPick === fixture.result;
+  const status = !hasPick ? '— NO PREDICTION' : isCorrect ? '✓ CORRECT' : '✗ INCORRECT';
+
+  const verdict = el(`
+    <div class="verdict">
+      <span class="verdict-status">${escapeHtml(status)}</span>
+    </div>
+  `);
+
+  if (!isCorrect) {
+    const predicted = hasPick ? `Predicted ${outcomeName(fixture, currentPick)} · ` : '';
+    const detail = `${predicted}Actual ${outcomeName(fixture, fixture.result)}`;
+    verdict.appendChild(el(`<span class="verdict-detail">${escapeHtml(detail)}</span>`));
+  }
+
+  return verdict;
+}
+
+function outcomeName(fixture, outcome) {
+  if (outcome === 'HOME') {
+    return formatTeam(fixture.home_team);
+  }
+
+  if (outcome === 'AWAY') {
+    return formatTeam(fixture.away_team);
+  }
+
+  return OUTCOME_LABELS[outcome] || outcome;
 }
 
 function renderSubmitControls(localPicks, fixtureCount) {

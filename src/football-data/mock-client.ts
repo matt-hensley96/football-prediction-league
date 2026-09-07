@@ -20,10 +20,9 @@ export class MockFootballDataClient implements FootballDataApi {
 
   async getScheduledMatches(): Promise<FdMatchesResponse> {
     const finishedCount = await readFinishedCount(this.env);
-    const kickoff = mockKickoffIso();
 
     const matches = MOCK_MATCHES.filter((_, index) => index >= finishedCount).map((match) =>
-      toFdMatch(match, kickoff, false),
+      toFdMatch(match, mockKickoffIso(match.kickoffTime), false),
     );
 
     return { matches };
@@ -39,7 +38,7 @@ export class MockFootballDataClient implements FootballDataApi {
 
     const finishedCount = await readFinishedCount(this.env);
 
-    return toFdMatch(match, mockKickoffIso(), index < finishedCount);
+    return toFdMatch(match, mockKickoffIso(match.kickoffTime), index < finishedCount);
   }
 }
 

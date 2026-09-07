@@ -353,6 +353,10 @@ table.retro-table.scoring-table {
   margin-bottom: 20px;
 }
 
+.result-line + .fixture-head {
+  margin-top: 14px;
+}
+
 .result-line {
   display: flex;
   justify-content: space-between;

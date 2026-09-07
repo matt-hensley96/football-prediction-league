@@ -55,6 +55,54 @@ function formatTeam(name) {
   return String(name).replace(/\bFC\b/g, '').replace(/\s{2,}/g, ' ').trim();
 }
 
+const TEAM_ACRONYMS = {
+  arsenal: 'ARS',
+  'aston villa': 'AVL',
+  bournemouth: 'BOU',
+  brentford: 'BRE',
+  'brighton hove albion': 'BHA',
+  brighton: 'BHA',
+  burnley: 'BUR',
+  chelsea: 'CHE',
+  'crystal palace': 'CRY',
+  everton: 'EVE',
+  fulham: 'FUL',
+  'ipswich town': 'IPS',
+  ipswich: 'IPS',
+  'leeds united': 'LEE',
+  leeds: 'LEE',
+  'leicester city': 'LEI',
+  leicester: 'LEI',
+  liverpool: 'LIV',
+  'luton town': 'LUT',
+  'manchester city': 'MCI',
+  'manchester united': 'MUN',
+  'newcastle united': 'NEW',
+  newcastle: 'NEW',
+  'nottingham forest': 'NFO',
+  'sheffield united': 'SHU',
+  southampton: 'SOU',
+  sunderland: 'SUN',
+  'tottenham hotspur': 'TOT',
+  tottenham: 'TOT',
+  'west ham united': 'WHU',
+  'west ham': 'WHU',
+  'wolverhampton wanderers': 'WOL',
+  wolverhampton: 'WOL',
+  wolves: 'WOL',
+};
+
+function teamAcronym(name) {
+  const key = String(name)
+    .replace(/\bA?FC\b/gi, '')
+    .replace(/&/g, ' ')
+    .replace(/[^a-zA-Z\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return TEAM_ACRONYMS[key] || key.slice(0, 3).toUpperCase();
+}
+
 function el(html) {
   const template = document.createElement('template');
   template.innerHTML = html.trim();
@@ -505,8 +553,7 @@ function renderHistoryBlock(entry) {
     block.appendChild(
       el(`
         <div>
-          <strong>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</strong>
-          - ${fixture.result ? OUTCOME_LABELS[fixture.result] : 'PENDING'}
+          <strong>${escapeHtml(teamAcronym(fixture.home_team))} vs ${escapeHtml(teamAcronym(fixture.away_team))}</strong>
         </div>
       `),
     );

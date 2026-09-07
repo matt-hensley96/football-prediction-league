@@ -317,14 +317,18 @@ async function renderPredictPage() {
     } else {
       app.appendChild(
         el(
-          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a result for each game, then hit Submit.</p>`,
+          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}.</p>`,
         ),
       );
     }
 
     const localPicks = { ...picks };
 
-    for (const fixture of fixtures) {
+    const sortedFixtures = [...fixtures].sort(
+      (a, b) => new Date(a.kickoff_time) - new Date(b.kickoff_time),
+    );
+
+    for (const fixture of sortedFixtures) {
       app.appendChild(
         renderFixtureCard(fixture, localPicks[fixture.id], isOpen, (pick) => {
           localPicks[fixture.id] = pick;

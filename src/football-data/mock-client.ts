@@ -44,13 +44,15 @@ export class MockFootballDataClient implements FootballDataApi {
 }
 
 function toFdMatch(match: MockMatch, kickoff: string, finished: boolean): FdMatch {
+  const status = !finished ? 'SCHEDULED' : (match.unplayable ?? 'FINISHED');
+
   return {
     id: match.id,
     utcDate: kickoff,
-    status: finished ? 'FINISHED' : 'SCHEDULED',
+    status,
     matchday: match.matchday,
     homeTeam: { id: match.id * 10, name: match.homeTeam },
     awayTeam: { id: match.id * 10 + 1, name: match.awayTeam },
-    score: { winner: finished ? match.winner : null },
+    score: { winner: status === 'FINISHED' ? match.winner : null },
   };
 }

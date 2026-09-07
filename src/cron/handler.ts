@@ -1,8 +1,13 @@
 import { createFootballDataClient } from '../football-data/factory';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
 import type { FootballDataApi } from '../football-data/types';
-import { outcomeIfFinished, scorePrediction } from '../scoring/scorer';
+import { outcomeIfFinished, scorePrediction, voidReasonIfUnplayable } from '../scoring/scorer';
+import { gameweekIsSettled, type FixtureSettlementState } from '../scoring/settlement';
 import type { Env, FixtureRow, GameweekRow, Outcome, PredictionRow } from '../types';
+
+interface FixtureWithVoid extends FixtureRow {
+  void_reason: string | null;
+}
 
 export async function syncGameweek(env: Env): Promise<void> {
   const client = createFootballDataClient(env);
@@ -31,26 +36,44 @@ async function scoreNewlyFinishedFixtures(
   client: FootballDataApi,
   gameweek: GameweekRow,
 ): Promise<void> {
-  const unscored = await env.DB.prepare('SELECT * FROM fixtures WHERE gameweek_id = ? AND result IS NULL')
+  const fixtures = await env.DB.prepare(
+    `SELECT f.*, v.reason AS void_reason
+     FROM fixtures f
+     LEFT JOIN voided_fixtures v ON v.fixture_id = f.id
+     WHERE f.gameweek_id = ?`,
+  )
     .bind(gameweek.id)
-    .all<FixtureRow>();
+    .all<FixtureWithVoid>();
 
-  if (unscored.results.length === 0) {
-    return;
-  }
+  const settlementState: FixtureSettlementState[] = [];
 
-  for (const fixture of unscored.results) {
-    const match = await client.getMatch(fixture.pl_match_id);
-    const outcome = outcomeIfFinished(match);
+  for (const fixture of fixtures.results) {
+    let result = fixture.result;
+    let voided = fixture.void_reason !== null;
 
-    if (outcome === null) {
-      continue;
+    if (result === null && !voided) {
+      const match = await client.getMatch(fixture.pl_match_id);
+      const outcome = outcomeIfFinished(match);
+
+      if (outcome !== null) {
+        await scoreFixture(env, fixture, outcome);
+        result = outcome;
+      } else {
+        const voidReason = voidReasonIfUnplayable(match);
+
+        if (voidReason !== null) {
+          await env.DB.prepare('INSERT OR IGNORE INTO voided_fixtures (fixture_id, reason) VALUES (?, ?)')
+            .bind(fixture.id, voidReason)
+            .run();
+          voided = true;
+        }
+      }
     }
 
-    await scoreFixture(env, fixture, outcome);
+    settlementState.push({ result, voided });
   }
 
-  await settleGameweekIfComplete(env, gameweek);
+  await settleGameweekIfComplete(env, gameweek, settlementState);
 }
 
 async function scoreFixture(env: Env, fixture: FixtureRow, outcome: Outcome): Promise<void> {
@@ -70,18 +93,18 @@ async function scoreFixture(env: Env, fixture: FixtureRow, outcome: Outcome): Pr
 }
 
 /**
- * A gameweek is settled only once every one of its fixtures has a result. Fixtures are scored
- * individually as each match finishes (so the live league table moves match by match), and this
- * flips the gameweek to 'scored' on the run that scores the last one.
+ * A gameweek is settled once every one of its fixtures has a result or has been voided (a
+ * POSTPONED/CANCELLED/SUSPENDED match - see voided_fixtures). Fixtures are scored individually
+ * as each match finishes (so the live league table moves match by match); this check runs on
+ * every sync, so a gameweek still settles on a later tick even when nothing new was scored -
+ * e.g. the last pending fixture was voided rather than played.
  */
-async function settleGameweekIfComplete(env: Env, gameweek: GameweekRow): Promise<void> {
-  const stillPending = await env.DB.prepare(
-    'SELECT 1 FROM fixtures WHERE gameweek_id = ? AND result IS NULL LIMIT 1',
-  )
-    .bind(gameweek.id)
-    .first();
-
-  if (stillPending) {
+async function settleGameweekIfComplete(
+  env: Env,
+  gameweek: GameweekRow,
+  fixtures: FixtureSettlementState[],
+): Promise<void> {
+  if (gameweek.status !== 'locked' || !gameweekIsSettled(fixtures)) {
     return;
   }
 

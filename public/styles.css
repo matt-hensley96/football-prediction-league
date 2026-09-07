@@ -347,6 +347,20 @@ table.retro-table.scoring-table {
   color: #888888;
 }
 
+.fixture-card.verdict-void {
+  border-color: #888888;
+  border-width: 2px;
+}
+
+.fixture-card.verdict-void .verdict-status {
+  color: #888888;
+}
+
+.result-line.void-line {
+  color: #888888;
+  font-style: italic;
+}
+
 .history-block {
   border-top: 2px solid var(--yellow);
   padding-top: 8px;

@@ -408,6 +408,12 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
 
   const buttons = card.querySelectorAll('.pick-btn');
 
+  if (fixture.voided) {
+    markVoidedFixture(card, buttons, fixture, currentPick);
+
+    return card;
+  }
+
   if (fixture.result) {
     markResolvedFixture(card, buttons, fixture, currentPick);
 
@@ -447,6 +453,35 @@ function markResolvedFixture(card, buttons, fixture, currentPick) {
   });
 
   card.appendChild(renderVerdict(fixture, currentPick));
+}
+
+function markVoidedFixture(card, buttons, fixture, currentPick) {
+  card.classList.add('resolved', 'verdict-void');
+
+  buttons.forEach((btn) => {
+    btn.disabled = true;
+
+    if (btn.dataset.pick === currentPick) {
+      btn.classList.add('selected');
+    }
+  });
+
+  card.appendChild(
+    el(`
+      <div class="verdict">
+        <span class="verdict-status">${escapeHtml(voidLabel(fixture))}</span>
+      </div>
+    `),
+  );
+}
+
+function voidLabel(fixture) {
+  const reason =
+    fixture.void_reason === 'CANCELLED' || fixture.void_reason === 'SUSPENDED'
+      ? fixture.void_reason
+      : 'POSTPONED';
+
+  return `${reason} · NO POINTS`;
 }
 
 function renderVerdict(fixture, currentPick) {
@@ -558,6 +593,12 @@ function renderHistoryBlock(entry) {
       `),
     );
 
+    if (fixture.voided) {
+      block.appendChild(
+        el(`<div class="result-line void-line"><span>${escapeHtml(voidLabel(fixture))}</span></div>`),
+      );
+    }
+
     const picksForFixture = entry.picks.filter((p) => p.fixture_id === fixture.id);
 
     for (const pick of picksForFixture) {
@@ -565,7 +606,7 @@ function renderHistoryBlock(entry) {
         el(`
           <div class="result-line">
             <span>${escapeHtml(pick.name.toUpperCase())}: ${OUTCOME_LABELS[pick.pick]}</span>
-            <span class="points">${pick.points_awarded ?? 0}pt</span>
+            <span class="points">${fixture.voided ? '–' : `${pick.points_awarded ?? 0}pt`}</span>
           </div>
         `),
       );

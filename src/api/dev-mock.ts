@@ -15,7 +15,14 @@ interface MockStateView {
   finishedCount: number;
   totalMockFixtures: number;
   currentGameweek: { matchday: number; status: string } | null;
-  fixtures: Array<{ home: string; away: string; mockWinner: string | null; result: string | null }>;
+  fixtures: Array<{
+    home: string;
+    away: string;
+    mockWinner: string | null;
+    result: string | null;
+    voided: boolean;
+    voidReason: string | null;
+  }>;
   nextAdvance: string;
 }
 
@@ -31,6 +38,7 @@ export async function handleMockReset(env: Env): Promise<Response> {
   await env.DB.batch([
     env.DB.prepare('DELETE FROM predictions'),
     env.DB.prepare('DELETE FROM gameweek_reminders'),
+    env.DB.prepare('DELETE FROM voided_fixtures'),
     env.DB.prepare('DELETE FROM fixtures'),
     env.DB.prepare('DELETE FROM gameweeks'),
   ]);
@@ -91,7 +99,9 @@ async function applyMockAction(
   if (action === 'finish' && match) {
     await setFinishedCount(env, finishedCount + 1);
 
-    return `finished ${match.homeTeam} v ${match.awayTeam} => ${match.winner}`;
+    return match.unplayable
+      ? `${match.unplayable.toLowerCase()} ${match.homeTeam} v ${match.awayTeam} (no result)`
+      : `finished ${match.homeTeam} v ${match.awayTeam} => ${match.winner}`;
   }
 
   return 'every mock fixture has already finished';
@@ -106,7 +116,13 @@ async function describeMockState(env: Env): Promise<MockStateView> {
 
   const fixtures = gameweek
     ? (
-        await env.DB.prepare('SELECT * FROM fixtures WHERE gameweek_id = ? ORDER BY id')
+        await env.DB.prepare(
+          `SELECT f.*, v.reason AS void_reason
+           FROM fixtures f
+           LEFT JOIN voided_fixtures v ON v.fixture_id = f.id
+           WHERE f.gameweek_id = ?
+           ORDER BY f.id`,
+        )
           .bind(gameweek.id)
           .all<FixtureRow>()
       ).results
@@ -127,6 +143,8 @@ async function describeMockState(env: Env): Promise<MockStateView> {
       away: fixture.away_team,
       mockWinner: MOCK_MATCHES.find((match) => match.id === fixture.pl_match_id)?.winner ?? null,
       result: fixture.result,
+      voided: fixture.void_reason != null,
+      voidReason: fixture.void_reason ?? null,
     })),
     nextAdvance: describeNextAdvance(action, finishedCount),
   };
@@ -141,6 +159,10 @@ function describeNextAdvance(action: MockAction, finishedCount: number): string 
 
   if (action === 'exhausted' || !match) {
     return 'nothing - every mock fixture has finished';
+  }
+
+  if (match.unplayable) {
+    return `${match.unplayable.toLowerCase()} ${match.homeTeam} v ${match.awayTeam} (voided, no result)`;
   }
 
   return `finish ${match.homeTeam} v ${match.awayTeam} (${match.winner})`;

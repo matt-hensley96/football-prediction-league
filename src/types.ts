@@ -26,6 +26,10 @@ export interface FixtureRow {
   kickoff_time: string;
   pl_match_id: number;
   result: Outcome | null;
+  // Present only on queries that LEFT JOIN voided_fixtures (the API handlers and the cron
+  // settlement load); a plain `SELECT * FROM fixtures` leaves them undefined.
+  voided?: number;
+  void_reason?: string | null;
 }
 
 export interface PredictionRow {

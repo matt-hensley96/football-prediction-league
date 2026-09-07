@@ -32,3 +32,18 @@ export function outcomeIfFinished(match: FdMatch): Outcome | null {
 
   return outcomeFromWinner(match.score.winner);
 }
+
+/**
+ * Statuses that mean a match will not produce a result we can score. SUSPENDED is included
+ * even though such a match is sometimes resumed later - the point is to never let one block
+ * its gameweek from settling, and a voided fixture stays voided.
+ */
+const UNPLAYABLE_STATUSES = ['POSTPONED', 'CANCELLED', 'SUSPENDED'] as const;
+
+export type VoidReason = (typeof UNPLAYABLE_STATUSES)[number];
+
+export function voidReasonIfUnplayable(match: FdMatch): VoidReason | null {
+  return (UNPLAYABLE_STATUSES as readonly string[]).includes(match.status)
+    ? (match.status as VoidReason)
+    : null;
+}

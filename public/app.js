@@ -317,7 +317,7 @@ async function renderPredictPage() {
     } else {
       app.appendChild(
         el(
-          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}. Pick a result for each game, then hit Submit.</p>`,
+          `<p class="muted">Deadline: ${formatKickoff(gameweek.deadline)}.</p>`,
         ),
       );
     }

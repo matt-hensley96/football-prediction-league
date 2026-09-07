@@ -552,7 +552,7 @@ function renderHistoryBlock(entry) {
   for (const fixture of entry.fixtures) {
     block.appendChild(
       el(`
-        <div>
+        <div class="fixture-head">
           <strong>${escapeHtml(teamAcronym(fixture.home_team))} vs ${escapeHtml(teamAcronym(fixture.away_team))}</strong>
         </div>
       `),

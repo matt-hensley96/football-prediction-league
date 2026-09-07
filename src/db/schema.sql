@@ -62,6 +62,16 @@ CREATE TABLE IF NOT EXISTS predictions (
   UNIQUE (user_id, fixture_id)
 );
 
+-- A fixture the football API reported as unplayable (POSTPONED / CANCELLED / SUSPENDED).
+-- Its result stays NULL forever; settlement treats a voided fixture as "done" so one dead
+-- match can't freeze its gameweek (and the whole season) from ever settling. Terminal: once
+-- a row exists the scoring loop skips that fixture. reason holds the football-data status.
+CREATE TABLE IF NOT EXISTS voided_fixtures (
+  fixture_id INTEGER PRIMARY KEY REFERENCES fixtures(id),
+  reason TEXT NOT NULL,
+  voided_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_fixtures_gameweek ON fixtures (gameweek_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);

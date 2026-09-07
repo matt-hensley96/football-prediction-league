@@ -16,6 +16,8 @@ function envWithFinishedCount(finishedCount: number): Env {
 
 const firstMatch = MOCK_MATCHES[0]!;
 const secondMatch = MOCK_MATCHES[1]!;
+const unplayableMatch = MOCK_MATCHES.find((m) => m.unplayable)!;
+const unplayableIndex = MOCK_MATCHES.indexOf(unplayableMatch);
 
 describe('MockFootballDataClient.getMatch', () => {
   it('reports a match as SCHEDULED while its position is at or above finished_count', async () => {
@@ -34,6 +36,15 @@ describe('MockFootballDataClient.getMatch', () => {
 
     expect(match.status).toBe('FINISHED');
     expect(match.score.winner).toBe(firstMatch.winner);
+  });
+
+  it('reports an unplayable match with its status and no winner once its position is below finished_count', async () => {
+    const client = new MockFootballDataClient(envWithFinishedCount(unplayableIndex + 1));
+
+    const match = await client.getMatch(unplayableMatch.id);
+
+    expect(match.status).toBe(unplayableMatch.unplayable);
+    expect(match.score.winner).toBeNull();
   });
 
   it('throws for an unknown match id', async () => {

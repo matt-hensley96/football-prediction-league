@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FdMatch, FdMatchStatus, FdMatchWinner } from '../football-data/types';
-import { outcomeFromWinner, outcomeIfFinished, scorePrediction } from './scorer';
+import { outcomeFromWinner, outcomeIfFinished, scorePrediction, voidReasonIfUnplayable } from './scorer';
 
 function fdMatch(status: FdMatchStatus, winner: FdMatchWinner): FdMatch {
   return {
@@ -56,6 +56,19 @@ describe('outcomeIfFinished', () => {
     'is null while status is %s',
     (status) => {
       expect(outcomeIfFinished(fdMatch(status, 'HOME_TEAM'))).toBeNull();
+    },
+  );
+});
+
+describe('voidReasonIfUnplayable', () => {
+  it.each(['POSTPONED', 'CANCELLED', 'SUSPENDED'] as const)('returns %s for a %s match', (status) => {
+    expect(voidReasonIfUnplayable(fdMatch(status, null))).toBe(status);
+  });
+
+  it.each(['FINISHED', 'SCHEDULED', 'TIMED', 'IN_PLAY', 'PAUSED'] as const)(
+    'is null for a %s match',
+    (status) => {
+      expect(voidReasonIfUnplayable(fdMatch(status, 'HOME_TEAM'))).toBeNull();
     },
   );
 });

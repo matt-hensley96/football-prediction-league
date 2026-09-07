@@ -17,7 +17,14 @@ export async function getCurrentGameweek(request: Request, env: Env): Promise<Re
     return json({ gameweek: null, fixtures: [], picks: {} });
   }
 
-  const fixtures = await env.DB.prepare('SELECT * FROM fixtures WHERE gameweek_id = ?')
+  const fixtures = await env.DB.prepare(
+    `SELECT f.*,
+            CASE WHEN v.fixture_id IS NOT NULL THEN 1 ELSE 0 END AS voided,
+            v.reason AS void_reason
+     FROM fixtures f
+     LEFT JOIN voided_fixtures v ON v.fixture_id = f.id
+     WHERE f.gameweek_id = ?`,
+  )
     .bind(gameweek.id)
     .all<FixtureRow>();
 

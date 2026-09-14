@@ -356,6 +356,15 @@ table.retro-table.scoring-table {
   color: #888888;
 }
 
+.gameweek-total {
+  border-top: 2px solid var(--yellow);
+  padding-top: 10px;
+  margin-top: 10px;
+  color: var(--yellow);
+  font-weight: bold;
+  text-align: right;
+}
+
 .result-line.void-line {
   color: #888888;
   font-style: italic;

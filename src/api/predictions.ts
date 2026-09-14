@@ -30,22 +30,25 @@ export async function getCurrentGameweek(request: Request, env: Env): Promise<Re
 
   const user = await getAuthedUser(request, env);
   let picks: Record<number, Outcome> = {};
+  let points: Record<number, number | null> = {};
 
   if (user) {
     const rows = await env.DB.prepare(
-      `SELECT fixture_id, pick FROM predictions
+      `SELECT fixture_id, pick, points_awarded FROM predictions
        WHERE user_id = ? AND fixture_id IN (SELECT id FROM fixtures WHERE gameweek_id = ?)`,
     )
       .bind(user.id, gameweek.id)
-      .all<{ fixture_id: number; pick: Outcome }>();
+      .all<{ fixture_id: number; pick: Outcome; points_awarded: number | null }>();
 
     picks = Object.fromEntries(rows.results.map((r) => [r.fixture_id, r.pick]));
+    points = Object.fromEntries(rows.results.map((r) => [r.fixture_id, r.points_awarded]));
   }
 
   return json({
     gameweek,
     fixtures: fixtures.results,
     picks,
+    points,
     isOpen: gameweek.status === 'open' && new Date(gameweek.deadline) > new Date(),
   });
 }

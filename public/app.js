@@ -351,7 +351,7 @@ async function renderPredictPage() {
   app.appendChild(loadingMsg);
 
   try {
-    const { gameweek, fixtures, picks, isOpen } = await api('/gameweek');
+    const { gameweek, fixtures, picks, points, isOpen } = await api('/gameweek');
     loadingMsg.remove();
 
     if (!gameweek) {
@@ -378,7 +378,7 @@ async function renderPredictPage() {
 
     for (const fixture of sortedFixtures) {
       app.appendChild(
-        renderFixtureCard(fixture, localPicks[fixture.id], isOpen, (pick) => {
+        renderFixtureCard(fixture, localPicks[fixture.id], points[fixture.id], isOpen, (pick) => {
           localPicks[fixture.id] = pick;
         }),
       );
@@ -386,6 +386,8 @@ async function renderPredictPage() {
 
     if (isOpen) {
       app.appendChild(renderSubmitControls(localPicks, fixtures.length));
+    } else {
+      app.appendChild(renderGameweekTotal(points));
     }
   } catch (err) {
     loadingMsg.remove();
@@ -393,7 +395,7 @@ async function renderPredictPage() {
   }
 }
 
-function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
+function renderFixtureCard(fixture, currentPick, pointsAwarded, isOpen, onPick) {
   const card = el(`
     <div class="fixture-card">
       <div>${escapeHtml(formatTeam(fixture.home_team))} vs ${escapeHtml(formatTeam(fixture.away_team))}</div>
@@ -415,7 +417,7 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   }
 
   if (fixture.result) {
-    markResolvedFixture(card, buttons, fixture, currentPick);
+    markResolvedFixture(card, buttons, fixture, currentPick, pointsAwarded);
 
     return card;
   }
@@ -437,7 +439,7 @@ function renderFixtureCard(fixture, currentPick, isOpen, onPick) {
   return card;
 }
 
-function markResolvedFixture(card, buttons, fixture, currentPick) {
+function markResolvedFixture(card, buttons, fixture, currentPick, pointsAwarded) {
   const hasPick = currentPick != null;
   const isCorrect = hasPick && currentPick === fixture.result;
   const verdictClass = isCorrect ? 'verdict-correct' : hasPick ? 'verdict-wrong' : 'verdict-nopick';
@@ -452,7 +454,7 @@ function markResolvedFixture(card, buttons, fixture, currentPick) {
     }
   });
 
-  card.appendChild(renderVerdict(fixture, currentPick));
+  card.appendChild(renderVerdict(fixture, currentPick, pointsAwarded));
 }
 
 function markVoidedFixture(card, buttons, fixture, currentPick) {
@@ -484,10 +486,10 @@ function voidLabel(fixture) {
   return `${reason} · NO POINTS`;
 }
 
-function renderVerdict(fixture, currentPick) {
+function renderVerdict(fixture, currentPick, pointsAwarded) {
   const hasPick = currentPick != null;
   const isCorrect = hasPick && currentPick === fixture.result;
-  const status = !hasPick ? '— NO PREDICTION' : isCorrect ? '✓ CORRECT' : '✗ INCORRECT';
+  const status = statusLabel(hasPick, pointsAwarded);
 
   const verdict = el(`
     <div class="verdict">
@@ -496,12 +498,33 @@ function renderVerdict(fixture, currentPick) {
   `);
 
   if (!isCorrect) {
-    const predicted = hasPick ? `Predicted ${outcomeName(fixture, currentPick)} · ` : '';
-    const detail = `${predicted}Actual ${outcomeName(fixture, fixture.result)}`;
-    verdict.appendChild(el(`<span class="verdict-detail">${escapeHtml(detail)}</span>`));
+    const result = `Result: ${outcomeName(fixture, fixture.result)}`;
+
+    verdict.appendChild(el(`<span class="verdict-detail">${escapeHtml(result)}</span>`));
   }
 
   return verdict;
+}
+
+function statusLabel(hasPick, pointsAwarded) {
+  if (!hasPick) {
+    return '— NO PREDICTION';
+  }
+
+  const points = pointsAwarded ?? 0;
+  const label = points === 3 ? '✓ CORRECT' : '✗ INCORRECT';
+
+  return `${label} (${formatPointsDelta(points)} pts)`;
+}
+
+function formatPointsDelta(points) {
+  return points > 0 ? `+${points}` : `${points}`;
+}
+
+function renderGameweekTotal(points) {
+  const total = Object.values(points).reduce((sum, awarded) => sum + (awarded ?? 0), 0);
+
+  return el(`<p class="gameweek-total">Gameweek total: ${formatPointsDelta(total)} pts</p>`);
 }
 
 function outcomeName(fixture, outcome) {

@@ -496,9 +496,9 @@ function renderVerdict(fixture, currentPick) {
   `);
 
   if (!isCorrect) {
-    const predicted = hasPick ? `Predicted ${outcomeName(fixture, currentPick)} · ` : '';
-    const detail = `${predicted}Actual ${outcomeName(fixture, fixture.result)}`;
-    verdict.appendChild(el(`<span class="verdict-detail">${escapeHtml(detail)}</span>`));
+    const result = `Result: ${outcomeName(fixture, fixture.result)}`;
+
+    verdict.appendChild(el(`<span class="verdict-detail">${escapeHtml(result)}</span>`));
   }
 
   return verdict;

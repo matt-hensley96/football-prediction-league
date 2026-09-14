@@ -386,6 +386,8 @@ async function renderPredictPage() {
 
     if (isOpen) {
       app.appendChild(renderSubmitControls(localPicks, fixtures.length));
+    } else {
+      app.appendChild(renderGameweekTotal(points));
     }
   } catch (err) {
     loadingMsg.remove();
@@ -517,6 +519,12 @@ function statusLabel(hasPick, pointsAwarded) {
 
 function formatPointsDelta(points) {
   return points > 0 ? `+${points}` : `${points}`;
+}
+
+function renderGameweekTotal(points) {
+  const total = Object.values(points).reduce((sum, awarded) => sum + (awarded ?? 0), 0);
+
+  return el(`<p class="gameweek-total">Gameweek total: ${formatPointsDelta(total)} pts</p>`);
 }
 
 function outcomeName(fixture, outcome) {

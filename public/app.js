@@ -636,7 +636,30 @@ function renderHistoryBlock(entry) {
     }
   }
 
+  appendHistoryTotals(block, entry);
+
   return block;
+}
+
+function appendHistoryTotals(block, entry) {
+  const totals = new Map();
+
+  for (const pick of entry.picks) {
+    totals.set(pick.name, (totals.get(pick.name) ?? 0) + (pick.points_awarded ?? 0));
+  }
+
+  block.appendChild(el('<div class="fixture-head"><strong>TOTALS</strong></div>'));
+
+  for (const [name, points] of totals) {
+    block.appendChild(
+      el(`
+        <div class="result-line">
+          <span>${escapeHtml(name.toUpperCase())}</span>
+          <span class="points">${points}pt</span>
+        </div>
+      `),
+    );
+  }
 }
 
 function escapeHtml(str) {

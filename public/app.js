@@ -660,7 +660,9 @@ function appendHistoryTotals(block, entry) {
 
   block.appendChild(el('<div class="fixture-head"><strong>TOTALS</strong></div>'));
 
-  for (const [name, points] of totals) {
+  const sortedTotals = [...totals].sort((a, b) => b[1] - a[1]);
+
+  for (const [name, points] of sortedTotals) {
     block.appendChild(
       el(`
         <div class="result-line">

@@ -624,14 +624,14 @@ function renderHistoryBlock(entry) {
       );
     }
 
-    const picksForFixture = entry.picks.filter((p) => p.fixture_id === fixture.id);
+    const predictionsForFixture = entry.picks.filter((p) => p.fixture_id === fixture.id);
 
-    for (const pick of picksForFixture) {
+    for (const prediction of predictionsForFixture) {
       block.appendChild(
         el(`
           <div class="result-line">
-            <span>${escapeHtml(pick.name.toUpperCase())}: ${OUTCOME_LABELS[pick.pick]}</span>
-            <span class="points">${formatHistoryPoints(fixture, pick)}</span>
+            <span>${escapeHtml(prediction.name.toUpperCase())}: ${escapeHtml(predictionLabel(fixture, prediction.pick))}</span>
+            <span class="points">${formatHistoryPoints(fixture, prediction)}</span>
           </div>
         `),
       );
@@ -641,6 +641,17 @@ function renderHistoryBlock(entry) {
   appendHistoryTotals(block, entry);
 
   return block;
+}
+
+function predictionLabel(fixture, prediction) {
+  switch (prediction) {
+    case 'HOME':
+      return teamAcronym(fixture.home_team);
+    case 'AWAY':
+      return teamAcronym(fixture.away_team);
+    default:
+      return 'DRAW';
+  }
 }
 
 function formatHistoryPoints(fixture, pick) {

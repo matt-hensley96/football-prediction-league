@@ -1,3 +1,4 @@
+import { getCpuPrediction } from '../football-data/cpu-picker';
 import { createFootballDataClient } from '../football-data/factory';
 import { determineNextGameweekFixtures } from '../football-data/gameweek-selector';
 import type { FootballDataApi } from '../football-data/types';
@@ -153,6 +154,8 @@ async function maybeOpenNextGameweek(env: Env, client: FootballDataApi): Promise
     id: number;
   }>();
 
+  const standings = superComputer ? await client.getStandings() : null;
+
   for (const fixture of selection.fixtures) {
     const insertedFixture = await env.DB.prepare(
       `INSERT INTO fixtures (gameweek_id, home_team, away_team, kickoff_time, pl_match_id)
@@ -167,9 +170,9 @@ async function maybeOpenNextGameweek(env: Env, client: FootballDataApi): Promise
       )
       .first<{ id: number }>();
 
-    if (insertedFixture && superComputer) {
+    if (insertedFixture && superComputer && standings) {
       await env.DB.prepare('INSERT INTO predictions (user_id, fixture_id, pick) VALUES (?, ?, ?)')
-        .bind(superComputer.id, insertedFixture.id, 'HOME')
+        .bind(superComputer.id, insertedFixture.id, getCpuPrediction(fixture, standings))
         .run();
     }
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MockFootballDataClient } from './mock-client';
-import { MOCK_MATCHES, MOCK_SEASON_END_DATE } from './mock-data';
+import { MOCK_MATCHES, MOCK_SEASON_END_DATE, MOCK_STANDINGS } from './mock-data';
 import { nextMockAction } from './mock-state';
 import type { Env } from '../types';
 
@@ -73,6 +73,16 @@ describe('MockFootballDataClient.getStandings', () => {
     const standings = await client.getStandings();
 
     expect(standings.season.endDate).toBe(MOCK_SEASON_END_DATE);
+  });
+
+  it('returns a TOTAL table positioning every mock team, so CPU predictions are not always HOME', async () => {
+    const client = new MockFootballDataClient(envWithFinishedCount(0));
+
+    const standings = await client.getStandings();
+    const totalTable = standings.standings.find((s) => s.type === 'TOTAL')?.table ?? [];
+
+    expect(totalTable).toHaveLength(MOCK_STANDINGS.length);
+    expect(totalTable.map((row) => row.team.name)).toEqual(expect.arrayContaining(['Arsenal', 'Everton']));
   });
 });
 

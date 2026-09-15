@@ -76,6 +76,5 @@ CREATE INDEX IF NOT EXISTS idx_fixtures_gameweek ON fixtures (gameweek_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions (fixture_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 
--- "CPU" always predicts a home win for every fixture
 -- It's a system account: pin_hash is meaningless since is_system users are always rejected at login.
 INSERT OR IGNORE INTO users (name, pin_hash, is_system, email) VALUES ('CPU', '', 1, 'cpu@system.local');

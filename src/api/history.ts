@@ -22,7 +22,8 @@ export async function getHistory(env: Env): Promise<Response> {
               v.reason AS void_reason
        FROM fixtures f
        LEFT JOIN voided_fixtures v ON v.fixture_id = f.id
-       WHERE f.gameweek_id = ?`,
+       WHERE f.gameweek_id = ?
+       ORDER BY f.kickoff_time ASC`,
     )
       .bind(gameweek.id)
       .all<FixtureRow>();

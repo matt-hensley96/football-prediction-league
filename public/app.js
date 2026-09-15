@@ -589,7 +589,7 @@ async function renderHistoryPage() {
     const { history } = await api('/history');
 
     if (history.length === 0) {
-      app.innerHTML = '<h1>History</h1><p class="info-box">No gameweeks scored yet.</p>';
+      app.innerHTML = '<h1>History</h1><p class="info-box">No gameweeks yet.</p>';
 
       return;
     }
@@ -605,7 +605,9 @@ async function renderHistoryPage() {
 }
 
 function renderHistoryBlock(entry) {
-  const block = el(`<div class="history-block"><h2>Gameweek ${entry.gameweek.matchday}</h2></div>`);
+  const inProgress = entry.gameweek.status === 'locked';
+  const badge = inProgress ? ' <span class="in-progress-badge">IN PROGRESS</span>' : '';
+  const block = el(`<div class="history-block"><h2>Gameweek ${entry.gameweek.matchday}${badge}</h2></div>`);
 
   for (const fixture of entry.fixtures) {
     block.appendChild(
@@ -629,7 +631,7 @@ function renderHistoryBlock(entry) {
         el(`
           <div class="result-line">
             <span>${escapeHtml(pick.name.toUpperCase())}: ${OUTCOME_LABELS[pick.pick]}</span>
-            <span class="points">${fixture.voided ? '–' : `${pick.points_awarded ?? 0}pt`}</span>
+            <span class="points">${formatHistoryPoints(fixture, pick)}</span>
           </div>
         `),
       );
@@ -639,6 +641,14 @@ function renderHistoryBlock(entry) {
   appendHistoryTotals(block, entry);
 
   return block;
+}
+
+function formatHistoryPoints(fixture, pick) {
+  if (fixture.voided || fixture.result === null) {
+    return '–';
+  }
+
+  return `${pick.points_awarded ?? 0}pt`;
 }
 
 function appendHistoryTotals(block, entry) {

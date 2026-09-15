@@ -10,7 +10,7 @@ interface PickRow {
 
 export async function getHistory(env: Env): Promise<Response> {
   const gameweeks = await env.DB.prepare(
-    "SELECT * FROM gameweeks WHERE status = 'scored' ORDER BY matchday DESC",
+    "SELECT * FROM gameweeks WHERE status IN ('scored', 'locked') ORDER BY matchday DESC",
   ).all<GameweekRow>();
 
   const history = [];

@@ -7,8 +7,8 @@
 import { webcrypto } from 'node:crypto';
 
 const players = [
-  { name: 'Matt', pin: '2604', email: 'matt@example.com' },
-  { name: 'David', pin: '2908', email: 'david@example.com' },
+  { name: 'Matt', pin: '1111', email: 'matt@example.com' },
+  { name: 'David', pin: '2222', email: 'david@example.com' },
 ];
 
 async function sha256Hex(input) {

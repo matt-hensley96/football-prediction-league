@@ -1,6 +1,6 @@
 import type { Env } from '../types';
 import type { FdMatch, FdMatchesResponse, FdStandingsResponse, FootballDataApi } from './types';
-import { MOCK_MATCHES, MOCK_SEASON_END_DATE, mockKickoffIso, type MockMatch } from './mock-data';
+import { MOCK_MATCHES, MOCK_SEASON_END_DATE, MOCK_STANDINGS, mockKickoffIso, type MockMatch } from './mock-data';
 import { readFinishedCount } from './mock-state';
 
 /**
@@ -14,7 +14,15 @@ export class MockFootballDataClient implements FootballDataApi {
   async getStandings(): Promise<FdStandingsResponse> {
     return {
       season: { startDate: '2099-08-01', endDate: MOCK_SEASON_END_DATE, currentMatchday: 1 },
-      standings: [],
+      standings: [
+        {
+          type: 'TOTAL',
+          table: MOCK_STANDINGS.map((row) => ({
+            position: row.position,
+            team: { id: row.teamId, name: row.teamName },
+          })),
+        },
+      ],
     };
   }
 

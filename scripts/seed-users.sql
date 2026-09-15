@@ -1,3 +1,3 @@
 INSERT INTO users (name, pin_hash, email) VALUES
-  ('Matt', '6dd6d77794056ba92bc53c43a5dd1b0149d7e88e4273e880d693baec4ff45860', 'matt@example.com'),
-  ('David', '6f4ddc5420f60ad526b4481607023708075caad06c1e392c2ec1f04c2548fd4f', 'david@example.com');
+  ('Matt', '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c', 'matt@example.com'),
+  ('David', 'edee29f882543b956620b26d0ee0e7e950399b1c4222f5de05e06425b4c995e9', 'david@example.com');

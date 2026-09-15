@@ -48,18 +48,43 @@ The league table is then scored as follows:
 No other external APIs or paid services are used - the whole app runs on Cloudflare's free tier plus free tiers of football-data.org and Brevo.
 
 
-## Local development:
+## Local development with mock football-data API:
 
-1. **Install dependencies**
+
+
+This swaps the real football-data.org client
+for [`MockFootballDataClient`](src/football-data/mock-client.ts), which serves three Gameweeks of fixtures and results ([`src/football-data/mock-data.ts`](src/football-data/mock-data.ts)).
+
+You can then advance through gameweeks by hand via three test endpoints outlined further down. Each step also runs the sync job, so the app reacts in the same call.
+
+1. **Set `.dev.vars`**
+
+   This file is gitignored, so add it to the project root if it doesn't exist. The values of the other variables can be any dummy value:
+
+   ```
+   USE_MOCK_FOOTBALL_DATA=true
+   FOOTBALL_DATA_TOKEN=your-football-data-org-token
+   BREVO_API_KEY=your-brevo-api-key
+   EMAIL_FROM=your-verified-brevo-sender@example.com
+   ```
+
+2. **Install dependencies**
 
    ```
    npm install
    ```
 
-2. **Create a local D1 database and run the schema migration**
+3. **Create a local D1 database and run the schema migration**
 
    ```
+   # migrate the local DB:
    npm run db:migrate:local
+
+   # then create the mock_football_state table (for mock results etc) locally:
+   npm run db:migrate:mock:local
+
+   # seed the DB with dummy users:
+   npm run db:seed:local
    ```
 
    This creates tables in a local SQLite file (managed by Wrangler/Miniflare) and seeds the "CPU"
@@ -68,31 +93,38 @@ No other external APIs or paid services are used - the whole app runs on Cloudfl
    If you ever want a clean slate, just delete `.wrangler/state` and re-run this
    command.
 
-3. **Create a `.dev.vars` file** in the project root (gitignored - never commit it) with your own
-   tokens:
-
-   ```
-   FOOTBALL_DATA_TOKEN=your-football-data-org-token
-   BREVO_API_KEY=your-brevo-api-key
-   EMAIL_FROM=your-verified-brevo-sender@example.com
-   ```
-
-   To run without any real football-data.org token, add `USE_MOCK_FOOTBALL_DATA=true` - see
-   [Local testing with the mock football-data API](#local-testing-with-the-mock-football-data-api)
-   below. With the mock on, `FOOTBALL_DATA_TOKEN` is unused and the Brevo values can be dummies
-   (email sends just fail and are logged).
-
 4. **Start the dev server**
 
    ```
    npm run dev
    ```
 
-   Opens the Worker locally (including the local D1 instance and the static UI) at the URL
-   Wrangler prints.
+   Starts the worker locally (including the local D1 instance and the static UI). Open the UI at the URL
+   Wrangler prints. (usually http://127.0.0.1:8787/)
 
+5. **Use the app to play through gameweeks, advancing them using the commands below**
+   ```
+   npm run mock:reset     
+   # This wipes gameweeks and opens a fresh 'Gameweek 1'
+   # Then you can open the UI, sign up, predict all 3 fixtures
 
-**N.B. local dev never runs the Cron Triggers by itself** - Miniflare doesn't fire them on a schedule.
+   npm run mock:advance
+   # This locks the gameweek (simulating the deadline passing)
+
+   npm run mock:advance   
+   # fixture 1 finishes and is scored
+
+   npm run mock:advance   
+   # fixture 2 finishes and is scored
+
+   npm run mock:advance   
+   # fixture 3 finishes -> gameweek ends -> matchday 2 opens
+
+   npm run mock:state     
+   # inspect current gameweek, per-fixture results, and what the next advance does
+   ```
+
+**N.B. local dev never runs the Cron Triggers on a timer** - Miniflare doesn't fire them on a schedule.
 To test them locally, call the endpoints below::
 
 ```
@@ -110,49 +142,6 @@ curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+8+*+*+*"
 
 curl -X POST "http://127.0.0.1:8787/__scheduled?cron=0+9+*+*+1"
 ```
-
-## Local testing with the mock football-data API
-
-Set `USE_MOCK_FOOTBALL_DATA=true` in `.dev.vars`.
-
-This swaps the real football-data.org client
-for [`MockFootballDataClient`](src/football-data/mock-client.ts), which serves three Gameweeks of fixtures and results ([`src/football-data/mock-data.ts`](src/football-data/mock-data.ts)).
-
-Progress is stepped forward by hand via three test endpoints outlined further down. Each step also runs the sync job, so the app reacts in the same call.
-
-Setup (one-off, alongside the normal steps above):
-
-```
-npm run db:migrate:mock:local   # creates the mock_football_state table locally
-```
-
-Then, after  `npm run dev`, run:
-
-```
-npm run mock:reset     
-# This wipes gameweeks and opens a fresh 'Gameweek 1'
-# Then you can open the UI, sign up, predict all 3 fixtures
-
-npm run mock:advance
-# This locks the gameweek (simulating the deadline passing)
-
-npm run mock:advance   
-# fixture 1 finishes and is scored
-
-npm run mock:advance   
-# fixture 2 finishes and is scored
-
-npm run mock:advance   
-# fixture 3 finishes -> gameweek ends -> matchday 2 opens
-
-npm run mock:state     # inspect current gameweek, per-fixture results, and what the next advance does
-```
-
-Repeat the four `mock:advance` calls to roll through Gameweeks 2 and 3. After Gameweek 3 is
-scored there are no more mock fixtures, so no further gameweek opens. 
-
-`npm run mock:reset`
-starts the loop over.
 
 ## Deployment process:
 
